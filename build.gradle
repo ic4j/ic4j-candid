@@ -12,7 +12,7 @@ plugins {
 }
 
 
-group 'org.ic4j.candid'
+group 'org.ic4j'
 version '0.6.0'
 
 sourceCompatibility = 1.8
