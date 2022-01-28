@@ -126,7 +126,7 @@ public class JDBCSerializer implements ObjectSerializer {
 	}
 
 	IDLValue getIDLValue(Optional<IDLType> expectedIdlType, ResultSet value) throws SQLException {
-		Map<String, Object> valueMap = new TreeMap<String, Object>();
+		Map<Label, Object> valueMap = new TreeMap<Label, Object>();
 		Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
 		Map<Label, IDLType> expectedTypeMap = new TreeMap<Label, IDLType>();
 
@@ -156,7 +156,7 @@ public class JDBCSerializer implements ObjectSerializer {
 			}
 
 			typeMap.put(Label.createNamedLabel(name), itemIdlValue.getIDLType());
-			valueMap.put(name, itemIdlValue.getValue());
+			valueMap.put(Label.createNamedLabel(name), itemIdlValue.getValue());
 		}
 
 		IDLType idlType = IDLType.createType(Type.RECORD, typeMap);

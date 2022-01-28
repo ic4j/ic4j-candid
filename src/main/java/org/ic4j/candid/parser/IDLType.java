@@ -63,10 +63,8 @@ public final class IDLType {
 			for(Object key : ((Map) value).keySet())
 			{
 				Label label;
-				if(key instanceof String)
-					label = Label.createNamedLabel((String)key);
-				else if(key instanceof Integer)
-					label = Label.createIdLabel((Integer)key);
+				if(key instanceof Label)
+					label = (Label)key;								
 				else
 					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Map Key");
 				

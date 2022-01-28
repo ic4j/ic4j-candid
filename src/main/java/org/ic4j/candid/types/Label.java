@@ -7,7 +7,7 @@ public class Label implements Comparable<Label> {
 	Object value;
 	LabelType type;
 
-	public static Label createIdLabel(Integer id) {
+	public static Label createIdLabel(Long id) {
 		Label label = new Label();
 		label.type = LabelType.ID;
 		label.value = id;
@@ -23,7 +23,7 @@ public class Label implements Comparable<Label> {
 		return label;
 	}
 
-	public static Label createUnnamedLabel(Integer id) {
+	public static Label createUnnamedLabel(Long id) {
 		Label label = new Label();
 		label.type = LabelType.UNNAMED;
 		label.value = id;
@@ -35,12 +35,12 @@ public class Label implements Comparable<Label> {
 		return this.value;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		switch (this.type) {
 		case ID:
-			return (Integer) this.value;
+			return (Long) this.value;
 		case UNNAMED:
-			return (Integer) this.value;
+			return (Long) this.value;
 		case NAMED:
 			return IDLUtils.idlHash((String) this.value);
 		default:
@@ -70,14 +70,13 @@ public class Label implements Comparable<Label> {
 
 	@Override
 	public int hashCode() {
-		return this.getId();
+		return (int)this.getId().longValue();
 	}
-
 
 
 	@Override
 	public int compareTo(Label other) {
-		return Integer.compare(this.getId(), other.getId());
+		return Long.compare(this.getId(), other.getId());
 	}
 
 	@Override

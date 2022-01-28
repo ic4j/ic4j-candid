@@ -28,16 +28,16 @@ import org.ic4j.candid.types.Opcode;
 
 public final class TypeTable {
 	// Raw value of the type description table
-	List<List<Integer>> table;
+	List<List<Long>> table;
 
 	// Value types for deserialization
-	Queue<Integer> types;
+	Queue<Long> types;
 
 	// The front of current_type queue always points to the type of the value we are
 	// deserializing.
-	Deque<Integer> currentType;
+	Deque<Long> currentType;
 
-	TypeTable(List<List<Integer>> table, Queue<Integer> types, Deque<Integer> currentType) {
+	TypeTable(List<List<Long>> table, Queue<Long> types, Deque<Long> currentType) {
 		this.table = table;
 		this.types = types;
 		this.currentType = currentType;
@@ -46,34 +46,34 @@ public final class TypeTable {
 
 	// Parse the type table and return the remaining bytes
 	public static TypeTableResponse fromBytes(byte[] input) {
-		List<List<Integer>> table = new ArrayList<List<Integer>>();
+		List<List<Long>> table = new ArrayList<List<Long>>();
 
-		Queue<Integer> types = new LinkedList<Integer>();
+		Queue<Long> types = new LinkedList<Long>();
 
 		Bytes bytes = new Bytes(input);
 
 		bytes.parseMagic();
 
-		int len = bytes.leb128Read();
+		int len = bytes.leb128Read().intValue();
 
 		for (int i = 0; i < len; i++) {
-			List<Integer> buf = new ArrayList<Integer>();
+			List<Long> buf = new ArrayList<Long>();
 
 			Integer ty = bytes.leb128ReadSigned();
 
-			buf.add(ty);
+			buf.add(ty.longValue());
 			if (ty == Opcode.OPT.value || ty == Opcode.VEC.value) {
 				ty = bytes.leb128ReadSigned();
 				validateTypeRange(ty, len);
-				buf.add(ty);
+				buf.add(ty.longValue());
 			} else if (ty == Opcode.RECORD.value || ty == Opcode.VARIANT.value) {
-				Integer objLen = bytes.leb128Read();
-				buf.add(objLen);
+				Integer objLen = bytes.leb128Read().intValue();
+				buf.add(objLen.longValue());
 
-				Optional<Integer> prevHash = Optional.empty();
+				Optional<Long> prevHash = Optional.empty();
 
 				for (int j = 0; j < objLen; j++) {
-					Integer hash = bytes.leb128Read();
+					Long hash = bytes.leb128Read();
 
 					if (prevHash.isPresent()) {
 						if (prevHash.get() >= hash)
@@ -85,7 +85,7 @@ public final class TypeTable {
 					buf.add(hash);
 					ty = bytes.leb128ReadSigned();
 					validateTypeRange(ty, len);
-					buf.add(ty);
+					buf.add(ty.longValue());
 				}
 			} else {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
@@ -95,15 +95,15 @@ public final class TypeTable {
 			table.add(buf);
 		}
 
-		len = bytes.leb128Read();
+		len = bytes.leb128Read().intValue();
 
 		for (int i = 0; i < len; i++) {
-			int ty = bytes.leb128ReadSigned();
+			Integer ty = bytes.leb128ReadSigned();
 			validateTypeRange(ty, table.size());
-			types.add(ty);
+			types.add(ty.longValue());
 		}
 
-		TypeTable typeTable = new TypeTable(table, types, new LinkedList<Integer>());
+		TypeTable typeTable = new TypeTable(table, types, new LinkedList<Long>());
 
 		TypeTableResponse response = new TypeTableResponse();
 
@@ -127,20 +127,9 @@ public final class TypeTable {
 			CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown type %d", ty));
 	}
 
-	Integer popCurrentType() {
+	Long popCurrentType() {
 
-		Integer type = this.currentType.pop();
-
-		if (type != null)
-			return type;
-		else
-			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Empty current_type");
-
-	}
-
-	Integer peekCurrentType() {
-
-		Integer type = this.currentType.peek();
+		Long type = this.currentType.pop();
 
 		if (type != null)
 			return type;
@@ -149,9 +138,20 @@ public final class TypeTable {
 
 	}
 
-	Opcode rawValueToOpcode(Integer value) {
+	Long peekCurrentType() {
+
+		Long type = this.currentType.peek();
+
+		if (type != null)
+			return type;
+		else
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Empty current_type");
+
+	}
+
+	Opcode rawValueToOpcode(int value) {
 		if (value >= 0 && value < this.table.size())
-			value = this.table.get(value).get(0);
+			value = this.table.get(value).get(0).intValue();
 
 		return Opcode.from(value);
 	}
@@ -163,12 +163,12 @@ public final class TypeTable {
 	// Same logic as parseType, but not poping the currentType queue.
 
 	Opcode parseType() {
-		Integer op = this.popCurrentType();
+		Long op = this.popCurrentType();
 
 		if (op >= 0 && op < this.table.size()) {
-			List<Integer> ty = this.table.get(op);
+			List<Long> ty = this.table.get(op.intValue());
 
-			ListIterator<Integer> it = ty.listIterator(ty.size());
+			ListIterator<Long> it = ty.listIterator(ty.size());
 
 			while (it.hasPrevious())
 				this.currentType.push(it.previous());
@@ -176,14 +176,14 @@ public final class TypeTable {
 			op = this.popCurrentType();
 		}
 
-		return Opcode.from(op);
+		return Opcode.from(op.intValue());
 	}
 
 	// Same logic as parseType, but not poping the currentType queue.
 	Opcode peekType() {
-		Integer op = this.peekCurrentType();
+		Long op = this.peekCurrentType();
 
-		return this.rawValueToOpcode(op);
+		return this.rawValueToOpcode(op.intValue());
 	}
 
 	// Check if currentType matches the provided type

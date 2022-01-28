@@ -46,7 +46,7 @@ public final class IDLDeserialize {
 			}
 
 		
-		Integer ty = this.de.table.types.poll();
+		Long ty = this.de.table.types.poll();
 		
 		if(ty == null)
 			CandidError.create(CandidError.CandidErrorCode.CUSTOM, "No more values to deserialize");

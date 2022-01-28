@@ -26,6 +26,7 @@ import java.util.Optional;
 import org.ic4j.candid.annotations.Name;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
+import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 
 import org.ic4j.candid.CandidError;
@@ -143,7 +144,7 @@ public class PojoDeserializer implements ObjectDeserializer {
 				if (field.isAnnotationPresent(Name.class))
 					name = field.getAnnotation(Name.class).value();
 
-				Object item = valueMap.get(IDLUtils.idlHash(name));
+				Object item = valueMap.get(Label.createNamedLabel(name));
 
 				if (!IDLType.isDefaultType(typeClass))
 					item = this.getValue(item, typeClass);

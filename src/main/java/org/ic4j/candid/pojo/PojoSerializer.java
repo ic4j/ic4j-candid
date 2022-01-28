@@ -115,7 +115,7 @@ public class PojoSerializer implements ObjectSerializer {
 			}else return IDLValue.create(optionalValue);
 		}
 		
-		Map<String, Object> valueMap =  new TreeMap<String, Object>();
+		Map<Label, Object> valueMap =  new TreeMap<Label, Object>();
 		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
 		
 		Field[] fields = valueClass.getDeclaredFields();
@@ -148,7 +148,7 @@ public class PojoSerializer implements ObjectSerializer {
 				fieldType = IDLType.createType(Type.NULL);
 				
 				typeMap.put(Label.createNamedLabel((String)name),fieldType);	
-				valueMap.put(name, item);
+				valueMap.put(Label.createNamedLabel((String)name), item);
 				continue;
 			}
 			
@@ -162,7 +162,7 @@ public class PojoSerializer implements ObjectSerializer {
 				// if we do not specify type in annotation and type is one of default
 				fieldType = IDLType.createType(item);
 				typeMap.put(Label.createNamedLabel((String)name), fieldType);	
-				valueMap.put(name, item);
+				valueMap.put(Label.createNamedLabel((String)name), item);
 				continue;
 			}
 			else
@@ -221,7 +221,7 @@ public class PojoSerializer implements ObjectSerializer {
 			}
 			
 			typeMap.put(Label.createNamedLabel((String)name), fieldType);	
-			valueMap.put(name, item);
+			valueMap.put(Label.createNamedLabel((String)name), item);
 				
 		}	
 		

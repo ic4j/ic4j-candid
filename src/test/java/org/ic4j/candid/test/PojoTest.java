@@ -18,6 +18,8 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.pojo.PojoDeserializer;
 import org.ic4j.candid.pojo.PojoSerializer;
+import org.ic4j.candid.types.Label;
+import org.ic4j.types.Principal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -33,15 +35,29 @@ public final class PojoTest extends CandidAssert {
 	}
 
 	@Test
-	public void test() {
-		// Record POJO
+	public void test() {		
+		Label label = Label.createNamedLabel("zipcode");
+		
+		long id = label.getId();
+		
+		int hash = label.hashCode();
+	
+		
+		// Loan Offer Request		
+		
+		LoanOfferRequest loanRequest = new LoanOfferRequest();
+		
+		loanRequest.userId = Principal.fromString("ubgwl-msd3g-gr5yh-cwpic-elony-lnexo-5f3wf-atisx-hxeyt-ffmfu-tqe");
+		loanRequest.amount = (double) 20000.00;
+		loanRequest.applicationId = new BigInteger("11");
+		loanRequest.term = 48;
+		loanRequest.rating = 670;
+		loanRequest.zipcode = "95134";
+		loanRequest.created = new BigInteger("0");
+		
+		LoanOfferRequest[] loanRequestArray = {loanRequest};
 
-		Pojo pojoValue = new Pojo();
-
-		pojoValue.bar = new Boolean(true);
-		pojoValue.foo = BigInteger.valueOf(42);
-
-		IDLValue idlValue = IDLValue.create(pojoValue, new PojoSerializer());
+		IDLValue idlValue = IDLValue.create(loanRequestArray, new PojoSerializer());
 
 		List<IDLValue> args = new ArrayList<IDLValue>();
 		args.add(idlValue);
@@ -49,6 +65,82 @@ public final class PojoTest extends CandidAssert {
 		IDLArgs idlArgs = IDLArgs.create(args);
 
 		byte[] buf = idlArgs.toBytes();
+		
+		int[] unsignedBuf = ByteUtils.toUnsignedIntegerArray(buf);
+		
+		LoanOfferRequest[] loanRequestArrayResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), LoanOfferRequest[].class);
+		
+		Assertions.assertArrayEquals(loanRequestArray, loanRequestArrayResult);
+		
+		// Loan Offer Request		
+		
+		LoanOffer loan = new LoanOffer();
+		
+		loan.userId = Principal.fromString("ubgwl-msd3g-gr5yh-cwpic-elony-lnexo-5f3wf-atisx-hxeyt-ffmfu-tqe");
+		loan.apr = (double) 3.4;
+		loan.applicationId = new BigInteger("11");
+		loan.providerName = "United Loan";
+		loan.providerId = Principal.fromString("zrakb-eaaaa-aaaab-qacaq-cai");
+		loan.created = new BigInteger("0");
+		
+		LoanOffer[] loanArray = {loan};
+
+		idlValue = IDLValue.create(loanArray, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		
+		LoanOffer[] loanArrayResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), LoanOffer[].class);
+		
+		Assertions.assertArrayEquals(loanArray, loanArrayResult);	
+		
+		// Loan Applications	
+		
+		LoanApplication loanApplication = new LoanApplication();
+		loanApplication.firstName = "John";
+		loanApplication.lastName = "Doe";
+		loanApplication.ssn = "111-11-1111";
+		loanApplication.term = 48;
+		loanApplication.zipcode = "95134";		
+		loanApplication.amount = (double) 20000.00;
+		loanApplication.id = new BigInteger("11");
+		loanApplication.created = new BigInteger("0");
+		
+		LoanApplication[] loanApplicationArray = {loanApplication};
+
+		idlValue = IDLValue.create(loanApplicationArray, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		LoanApplication[] loanApplicationArrayResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), LoanApplication[].class);
+		
+		Assertions.assertArrayEquals(loanApplicationArray, loanApplicationArrayResult);		
+		
+		// Record POJO
+
+		Pojo pojoValue = new Pojo();
+
+		pojoValue.bar = new Boolean(true);
+		pojoValue.foo = BigInteger.valueOf(42);
+
+		idlValue = IDLValue.create(pojoValue, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
 
 		assertBytes("DIDL\\01\\6c\\02\\d3\\e3\\aa\\02\\7e\\86\\8e\\b7\\02\\7c\\01\\00\\01\\2a", buf);
 
@@ -144,7 +236,7 @@ public final class PojoTest extends CandidAssert {
 
 		buf = idlArgs.toBytes();
 
-		int[] unsignedBuf = ByteUtils.toUnsignedIntegerArray(buf);
+		unsignedBuf  = ByteUtils.toUnsignedIntegerArray(buf);
 
 		IDLType[] idlTypes = { idlValue.getIDLType() };
 

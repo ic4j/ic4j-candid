@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 
 public final class Leb128 {
+
 	
 	public static int readSigned(ByteBuffer buf) {
         int result = 0;
@@ -52,8 +53,26 @@ public final class Leb128 {
 	}
 	
 
+    public static long readUnsigned(ByteBuffer buf) {
+        long result = 0;
+        long cur;
+        int count = 0;
+        
+
+        do {
+            cur = buf.get() & 0xff;
+            result |= (cur & 0x7f) << (count * 7);
+            count++;
+        } while (((cur & 0x80) == 0x80) && count < 9);
+
+        if ((cur & 0x80) == 0x80) {
+            throw CandidError.create(CandidError.CandidErrorCode.PARSE);
+        }
+
+        return result;
+    } 
     
-    public static int readUnsigned(ByteBuffer buf) {
+    public static int readUnsignedInt(ByteBuffer buf) {
         int result = 0;
         int cur;
         int count = 0;
@@ -214,7 +233,27 @@ public final class Leb128 {
         }
         
         return data;
-    }    
+    } 
+    
+    public static byte[] writeUnsigned(long value) {
+        ArrayList<Byte> list = new ArrayList<Byte>();
+    	long remaining = value >>> 7;
+
+        while (remaining != 0) {
+        	list.add((byte) ((value & 0x7f) | 0x80));
+            value = remaining;
+            remaining >>>= 7;
+        }
+
+        list.add((byte) (value & 0x7f));
+        
+        byte[] data = new byte[list.size()];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) list.get(i);
+        }
+        
+        return data;
+    }     
     
     public static byte[] writeSigned( int value) {
     	ArrayList<Byte> list = new ArrayList<Byte>();

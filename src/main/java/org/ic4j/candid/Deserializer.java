@@ -144,7 +144,7 @@ public final class Deserializer {
 	public IDLValue deserializeText() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.TEXT);
-		int len = this.input.leb128Read();
+		int len = this.input.leb128Read().intValue();
 
 		String value = this.input.parseString(len);
 
@@ -315,12 +315,12 @@ public final class Deserializer {
 				else
 					this.expectedType = Optional.ofNullable(expectedType.get().getInnerType());
 			
-			int len = this.input.leb128Read();
+			int len = this.input.leb128Read().intValue();
 
 			List values = new ArrayList<>(len);
 
 			for (int i = 0; i < len; i++) {
-				Integer ty = this.table.peekCurrentType();
+				Long ty = this.table.peekCurrentType();
 
 				IDLValue idlValue = this.deserializeAny();
 
@@ -369,21 +369,21 @@ public final class Deserializer {
 			else
 				typeMap = Optional.ofNullable(expectedType.get().getTypeMap());
 
-		int len = this.table.popCurrentType();
+		int len = this.table.popCurrentType().intValue();
 
-		Map<Integer, Optional> fs = new TreeMap<Integer, Optional>();
+		Map<Long, Optional> fs = new TreeMap<Long, Optional>();
 
-		Integer[] currentType = (Integer[]) this.table.currentType.toArray(new Integer[this.table.currentType.size()]);
+		Long[] currentType = (Long[]) this.table.currentType.toArray(new Long[this.table.currentType.size()]);
 
 		for (int i = 0; i < len; i++) {
-			Integer hash = currentType[2 * i];
+			Long hash = currentType[2 * i];
 			if (fs.put(hash, Optional.empty()) != null)
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
 		}
 
 		Map<Object, Object> map = new TreeMap<Object, Object>();
 		
-		Map<Integer, Label> labels = new TreeMap<Integer, Label>();
+		Map<Long, Label> labels = new TreeMap<Long, Label>();
 		
 		if(typeMap.isPresent())
 			for(Label label : typeMap.get().keySet())
@@ -392,7 +392,7 @@ public final class Deserializer {
 		for (int i = 0; i < len; i++) {
 			Object key;
 
-			Integer hash = this.table.popCurrentType();
+			Long hash = this.table.popCurrentType();
 
 			Optional field = fs.get(hash);
 
@@ -401,11 +401,20 @@ public final class Deserializer {
 			else
 				key = hash;
 			
+			Label label;
+			
+			if(key instanceof String)
+				label = Label.createNamedLabel((String) key);
+			else if(key instanceof Long)
+				label = Label.createIdLabel((Long) key);
+			else
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Label Type");
+			
 			// assign named Label, if exists
 			if(typeMap.isPresent())
 				if(labels.containsKey(key))
 				{
-					Label label = labels.get(key);
+					label = labels.get(key);
 					this.expectedType = Optional.ofNullable(typeMap.get().get(label));
 					
 					key = label.getValue();
@@ -416,7 +425,7 @@ public final class Deserializer {
 			
 			this.expectedType = expectedType;
 
-			map.put(key, idlValue.getValue());
+			map.put(label, idlValue.getValue());
 		}
 
 		this.recordNestingDepth = oldNesting;
@@ -441,26 +450,26 @@ public final class Deserializer {
 			else
 				typeMap = Optional.ofNullable(expectedType.get().getTypeMap());
 
-		int len = this.table.popCurrentType();
+		int len = this.table.popCurrentType().intValue();
 
-		Map<Integer, Optional> fs = new TreeMap<Integer, Optional>();
+		Map<Long, Optional> fs = new TreeMap<Long, Optional>();
 
-		Integer[] currentType = (Integer[]) this.table.currentType.toArray(new Integer[this.table.currentType.size()]);
+		Long[] currentType = (Long[]) this.table.currentType.toArray(new Long[this.table.currentType.size()]);
 
 		for (int i = 0; i < len; i++) {
-			Integer hash = currentType[2 * i];
+			Long hash = currentType[2 * i];
 			if (fs.put(hash, Optional.empty()) != null)
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
 		}
 		
 		Map<Object, Object> map = new TreeMap<Object, Object>();
 		
-		int idx = this.input.leb128Read();
+		long idx = this.input.leb128Read();
 
 		for (int i = 0; i < len; i++) {			
 			Object key;
 
-			Integer hash = this.table.popCurrentType();
+			Long hash = this.table.popCurrentType();
 			
 			if(i == idx)
 			{	
@@ -508,7 +517,7 @@ public final class Deserializer {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Opaque reference not supported"));
 
-		int len = this.input.leb128Read();
+		int len = this.input.leb128Read().intValue();
 
 		byte[] bytes = this.input.parseBytes(len);
 
@@ -534,7 +543,7 @@ public final class Deserializer {
 	Object[] toArray(List value) {
 		Object[] array;
 
-		Integer ty = this.table.popCurrentType();
+		Integer ty = this.table.popCurrentType().intValue();
 
 		int size = value.size();
 
@@ -542,7 +551,7 @@ public final class Deserializer {
 		{
 			array = value.toArray(new Object[size]);
 			
-			this.table.currentType.addFirst(ty);
+			this.table.currentType.addFirst(ty.longValue());
 			
 			return array;
 		}
@@ -613,7 +622,7 @@ public final class Deserializer {
 			array = value.toArray(new Object[size]);
 		}
 
-		this.table.currentType.addFirst(ty);
+		this.table.currentType.addFirst(ty.longValue());
 
 		return array;
 	}

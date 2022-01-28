@@ -37,7 +37,7 @@ final public class Bytes {
 		return new Bytes(input);
 	}
 
-	public Integer leb128Read() {
+	public Long leb128Read() {
 		try
 		{
 			return Leb128.readUnsigned(this.data);

@@ -271,7 +271,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 
 		// handle object
 		if (type == Type.RECORD || type == Type.VARIANT) {
-			Map<Integer, Object> valueMap = (Map<Integer, Object>) value;
+			Map<Label, Object> valueMap = (Map<Label, Object>) value;
 
 			Map<Label, IDLType> typeMap = idlType.getTypeMap();
 
@@ -280,35 +280,33 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 			if (expectedIdlType.isPresent() && expectedIdlType.get().getTypeMap() != null)
 				expectedTypeMap = expectedIdlType.get().getTypeMap();
 
-			Set<Integer> hashes = valueMap.keySet();
+			Set<Label> labels = valueMap.keySet();
 
-			Map<Integer, Label> expectedLabels = new TreeMap<Integer, Label>();
+			Map<Long, Label> expectedLabels = new TreeMap<Long, Label>();
 
 			for (Label entry : expectedTypeMap.keySet())
 				expectedLabels.put(entry.getId(), entry);
 
-			for (Integer hash : hashes) {
+			for (Label label : labels) {
 				String fieldName;
 
-				Label hashLabel = Label.createIdLabel(hash);
-
-				IDLType itemIdlType = typeMap.get(hashLabel);
+				IDLType itemIdlType = typeMap.get(label);
 
 				IDLType expectedItemIdlType = null;
 
-				if (expectedTypeMap.containsKey(Label.createIdLabel(hash))) {
-					expectedItemIdlType = expectedTypeMap.get(hashLabel);
+				if (expectedTypeMap.containsKey(label)) {
+					expectedItemIdlType = expectedTypeMap.get(label);
 
-					Label expectedLabel = expectedLabels.get(hash);
+					Label expectedLabel = expectedLabels.get(label.getId());
 
 					fieldName = expectedLabel.toString();
 				} else
-					fieldName = hashLabel.toString();
+					fieldName = label.toString();
 
 				Element itemElement;
 				if (itemIdlType.getType() == Type.VEC)
 					itemElement = this.getArrayValue(parentElement, fieldName, itemIdlType,
-							Optional.ofNullable(expectedItemIdlType), valueMap.get(hash));
+							Optional.ofNullable(expectedItemIdlType), valueMap.get(label));
 				else {
 					if (this.isQualified)
 						itemElement = this.document.get().createElementNS(this.namespace.get(), fieldName);
@@ -316,7 +314,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 						itemElement = this.document.get().createElement(fieldName);
 
 					itemElement = this.getValue(itemElement, itemIdlType, Optional.ofNullable(expectedItemIdlType),
-							valueMap.get(hash));
+							valueMap.get(label));
 				}
 
 				parentElement.appendChild(itemElement);
