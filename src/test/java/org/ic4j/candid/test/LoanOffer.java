@@ -10,7 +10,7 @@ import org.ic4j.candid.annotations.Field;
 public class LoanOffer{
     @Field(Type.PRINCIPAL)
     @Name("providerid")
-    public Principal providerId;	
+    public String providerId;	
     @Name("providername")
     public String providerName;    
     @Field(Type.PRINCIPAL)
@@ -18,7 +18,7 @@ public class LoanOffer{
     public Principal userId;
     @Field(Type.NAT)
     @Name("applicationid")
-    public BigInteger applicationId;
+    public Integer applicationId;
     public Double apr;    
     public BigInteger created;
     

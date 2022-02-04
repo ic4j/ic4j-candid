@@ -78,9 +78,9 @@ public final class PojoTest extends CandidAssert {
 		
 		loan.userId = Principal.fromString("ubgwl-msd3g-gr5yh-cwpic-elony-lnexo-5f3wf-atisx-hxeyt-ffmfu-tqe");
 		loan.apr = (double) 3.4;
-		loan.applicationId = new BigInteger("11");
+		loan.applicationId = 11;
 		loan.providerName = "United Loan";
-		loan.providerId = Principal.fromString("zrakb-eaaaa-aaaab-qacaq-cai");
+		loan.providerId = "zrakb-eaaaa-aaaab-qacaq-cai";
 		loan.created = new BigInteger("0");
 		
 		LoanOffer[] loanArray = {loan};

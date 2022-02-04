@@ -29,7 +29,7 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
-
+import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectSerializer;
 
 public class PojoSerializer implements ObjectSerializer {
@@ -58,7 +58,7 @@ public class PojoSerializer implements ObjectSerializer {
 		// handle arrays
 		if(value.getClass().isArray())
 		{
-			List<Map<String, Object>> arrayValue = new ArrayList();
+			List<Map<Label, Object>> arrayValue = new ArrayList();
 			
 			Object[] array = (Object[]) value;
 			
@@ -219,6 +219,12 @@ public class PojoSerializer implements ObjectSerializer {
 				
 				fieldType = IDLType.createType(Type.OPT, fieldType);
 			}
+
+			if(fieldType.getType() == Type.NAT || fieldType.getType() == Type.INT)
+				item = IDLUtils.objectToBigInt(item);
+			
+			if(fieldType.getType() == Type.PRINCIPAL)
+				item = IDLUtils.objectToPrincipal(item);
 			
 			typeMap.put(Label.createNamedLabel((String)name), fieldType);	
 			valueMap.put(Label.createNamedLabel((String)name), item);

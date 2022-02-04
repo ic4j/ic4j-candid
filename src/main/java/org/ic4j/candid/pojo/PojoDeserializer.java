@@ -18,6 +18,7 @@ package org.ic4j.candid.pojo;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
-
+import org.ic4j.types.Principal;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
@@ -53,6 +54,9 @@ public class PojoDeserializer implements ObjectDeserializer {
 		// handle OPT
 		if (idlValue.getType() == Type.OPT) {
 			Optional optionalValue = (Optional) idlValue.getValue();
+			
+			if(Optional.class.isAssignableFrom(clazz))
+				return (T)optionalValue;
 			// if innerType is primitive
 			if (idlValue.getIDLType().getInnerType().getType().isPrimitive())
 				return (T) optionalValue.orElse(null);
@@ -116,6 +120,9 @@ public class PojoDeserializer implements ObjectDeserializer {
 		// handle Optional
 		if (Optional.class.isAssignableFrom(value.getClass())) {
 			Optional optionalValue = (Optional) value;
+			
+			if(Optional.class.isAssignableFrom(clazz))
+				return (T)optionalValue;
 
 			if (optionalValue.isPresent()) {
 				value = this.getValue(optionalValue.get(), clazz);
@@ -151,9 +158,16 @@ public class PojoDeserializer implements ObjectDeserializer {
 
 				try {
 					// convert to proper type
-					if(item != null && item.getClass().isArray())
-						item = IDLUtils.toArray(typeClass, (Object[]) item);
+					if(item != null)
+					{
+						if(item.getClass().isArray())
+							item = IDLUtils.toArray(typeClass, (Object[]) item);
 					
+						if(item.getClass().isAssignableFrom(BigInteger.class) && !typeClass.isAssignableFrom(BigInteger.class))
+							item = IDLUtils.bigIntToObject((BigInteger) item, typeClass);
+						if(item.getClass().isAssignableFrom(Principal.class) && !typeClass.isAssignableFrom(Principal.class))
+							item = IDLUtils.principalToObject((Principal) item, typeClass);						
+					}
 					field.set(pojoValue, item);
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					continue;

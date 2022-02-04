@@ -23,6 +23,7 @@ import org.ic4j.candid.types.Type;
 
 import org.ic4j.candid.Deserialize;
 import org.ic4j.candid.Deserializer;
+import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 import org.ic4j.candid.ObjectSerializer;
 import org.ic4j.candid.Serializer;
@@ -116,7 +117,7 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeNat64((Long) value.get());
 			break;			
 		case INT:
-			serializer.serializeInt((BigInteger) value.get());			
+			serializer.serializeInt((BigInteger) IDLUtils.objectToBigInt(value.get()));			
 			break;
 		case INT8:
 			serializer.serializeInt8((Byte) value.get());
@@ -152,7 +153,7 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeVariant(value.get());
 			break;
 		case PRINCIPAL:
-			serializer.serializePrincipal((Principal) value.get());
+			serializer.serializePrincipal((Principal) IDLUtils.objectToPrincipal(value.get()));
 			break;				
 		}
 
