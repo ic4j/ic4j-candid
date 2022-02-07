@@ -16,9 +16,21 @@ public class PrincipalTest {
 		Principal principal;
 
 		try {
+			principal = Principal.anonymous();
+			
+			Assertions.assertEquals(principal.toString(), "2vxsx-fae");
+			
+			principal = Principal.managementCanister();
+			
+			Assertions.assertEquals(principal.toString(), "aaaaa-aa");			
+			
 			principal = Principal.fromString("aaaaa-aa");
 
 			Assertions.assertEquals(principal.toString(), "aaaaa-aa");
+			
+			principal = Principal.fromString("2vxsx-fae");
+
+			Assertions.assertEquals(principal.toString(), "2vxsx-fae");			
 
 			principal = Principal.fromString("rrkah-fqaaa-aaaaa-aaaaq-cai");
 

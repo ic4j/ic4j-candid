@@ -48,8 +48,19 @@ public final class Principal implements Cloneable {
 
 	Principal(PrincipalInner principalInner) {
 		this.principalInner = principalInner;
-		byte[] value = {ID_ANONYMOUS_BYTES};
-		this.value = Optional.of(value);
+		
+		if(principalInner == PrincipalInner.MANAGEMENT_CANISTER)
+		{
+			byte[] value = {};
+			this.value = Optional.of(value);
+		}
+		else if(principalInner == PrincipalInner.ANONYMOUS)
+		{
+			byte[] value = {ID_ANONYMOUS_BYTES};
+			this.value = Optional.of(value);			
+		}
+		else
+			this.value = Optional.empty();
 	}
 
 	Principal(PrincipalInner principalInner, byte[] value) {
