@@ -6,3 +6,4 @@
 /gradle.properties
 /build-export.gradle
 /secring.gpg
+/DEPLOY.md

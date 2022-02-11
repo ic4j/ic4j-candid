@@ -17,8 +17,10 @@
 package org.ic4j.candid.parser;
 
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Optional;
 
+import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 
 import org.ic4j.candid.Deserialize;
@@ -55,6 +57,19 @@ public final class IDLValue implements Deserialize{
 		return idlValue;
 	}	
     
+	public static IDLValue create(Object value, Map<Label,IDLType> typeMap)
+	{
+		IDLValue idlValue = new IDLValue();
+		
+		idlValue.value = Optional.ofNullable(value);
+		
+		idlValue.idlType = IDLType.createType(value);
+
+		idlValue.idlType.typeMap = typeMap;
+		
+		return idlValue;
+	}
+	
 	public static IDLValue create(Object value)
 	{
 		IDLValue idlValue = new IDLValue();
@@ -64,7 +79,7 @@ public final class IDLValue implements Deserialize{
 		idlValue.idlType = IDLType.createType(value);	
 		
 		return idlValue;
-	}
+	}	
 	
 	public static IDLValue create(Object value, ObjectSerializer objectSerializer)
 	{	
@@ -141,16 +156,16 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeText((String) value.get());
 			break;	
 		case OPT:
-			serializer.serializeOpt((Optional) value.get());
+			serializer.serializeOpt((Optional) value.get(), this.idlType);
 			break;
 		case VEC:
-			serializer.serializeVec((Object[])value.get());
+			serializer.serializeVec((Object[])value.get(), this.idlType);
 			break;
 		case RECORD:
-			serializer.serializeRecord(value.get());
+			serializer.serializeRecord(value.get(), this.idlType);
 			break;	
 		case VARIANT:
-			serializer.serializeVariant(value.get());
+			serializer.serializeVariant(value.get(), this.idlType);
 			break;
 		case PRINCIPAL:
 			serializer.serializePrincipal((Principal) IDLUtils.objectToPrincipal(value.get()));

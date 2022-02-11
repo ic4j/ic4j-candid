@@ -24,7 +24,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
+import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Numbers;
 import org.ic4j.types.Principal;
 import org.slf4j.Logger;
@@ -164,7 +166,7 @@ public final class ValueSerializer implements Serializer{
 		this.value = ArrayUtils.addAll(this.value, output.array());
     }	
 	
-	public final void serializeOpt(Optional<?> value) {
+	public final void serializeOpt(Optional<?> value, IDLType idlType) {
 		if(value.isPresent())
 		{
 			byte[] leb128 = Leb128.writeUnsigned(1);
@@ -173,7 +175,11 @@ public final class ValueSerializer implements Serializer{
 	    	
 	    	Object obj = value.get();
 	    	
-	    	IDLValue idlValue = IDLValue.create(obj);
+    		IDLValue idlValue;
+    		if(idlType == null)
+    			idlValue = IDLValue.create(obj);
+    		else
+    			idlValue = IDLValue.create(obj, idlType.getInnerType());
 	    	
 	    	idlValue.idlSerialize(this);
 		}
@@ -186,14 +192,19 @@ public final class ValueSerializer implements Serializer{
 		
 	}
 
-	public final <T> void serializeVec(T[] value) {
+	public final <T> void serializeVec(T[] value, IDLType idlType) {
 		byte[] leb128 = Leb128.writeUnsigned(value.length);
     	
     	this.value = ArrayUtils.addAll(this.value,leb128);
     	
     	for(Object element : value)
     	{
-    		IDLValue idlValue = IDLValue.create(element);
+    		IDLValue idlValue;
+    		if(idlType == null)
+    			idlValue = IDLValue.create(element);
+    		else
+    			idlValue = IDLValue.create(element, idlType.getInnerType());
+    		
     		idlValue.idlSerialize(this);
     	}
 		
@@ -213,25 +224,43 @@ public final class ValueSerializer implements Serializer{
 	
 
 	@Override
-	public void serializeRecord(Object value) {
+	public void serializeRecord(Object value, IDLType idlType) {
 		if(value instanceof Map)
-			for(Object element : ((Map) value).values())
-				this.serializeElement(element);	
+			for(Label label : ((Map<Label,Object>) value).keySet())
+			{		    			    	
+				Object element = ((Map<Label,Object>) value).get(label);				
+				
+				IDLType nestedType = null;
+				
+				if(idlType != null)
+					nestedType = idlType.getTypeMap().get(label);
+				
+				this.serializeElement(element, nestedType);	
+			}
+		
 	}
 
 	@Override
-	public void serializeVariant(Object value) {
+	public void serializeVariant(Object value, IDLType idlType) {
 		int idx = 0;
 		
 		if(value instanceof Map)
-			if(!((Map) value).isEmpty())
+			if(!((Map<Label,Object>) value).isEmpty())
 			{
 				byte[] leb128 = Leb128.writeUnsigned(idx);
 		    	
 		    	this.value = ArrayUtils.addAll(this.value,leb128);
 		    	
-				Object element = ((Map) value).values().iterator().next();
-				this.serializeElement(element);	
+		    	Label label = ((Map<Label,Object>)value).keySet().iterator().next();		    	
+		    	
+				Object element = ((Map<Label,Object>) value).get(label);				
+				
+				IDLType nestedType = null;
+				
+				if(idlType != null)
+					nestedType = idlType.getTypeMap().get(label);
+				
+				this.serializeElement(element, nestedType);	
 			}
 	}
 	
@@ -242,6 +271,17 @@ public final class ValueSerializer implements Serializer{
 	
 	void serializeElement(Object value) {
 		IDLValue idlValue = IDLValue.create(value);
+		idlValue.idlSerialize(this);
+	}
+	
+	void serializeElement(Object value, IDLType idlType) {
+		IDLValue idlValue;
+		
+		if(idlType != null)
+			idlValue = IDLValue.create(value, idlType);
+		else
+			idlValue = IDLValue.create(value);
+		
 		idlValue.idlSerialize(this);
 	}
 

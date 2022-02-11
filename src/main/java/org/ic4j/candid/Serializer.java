@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
 
+import org.ic4j.candid.parser.IDLType;
+import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.types.Principal;
 
 public interface Serializer {
@@ -53,13 +55,13 @@ public interface Serializer {
 	
 	public void serializeInt64(Long value);	
 	
-	public void serializeOpt(Optional<?> value);
+	public void serializeOpt(Optional<?> value, IDLType idlType);
 	
-	public <T> void serializeVec(T[] value);	
+	public <T> void serializeVec(T[] value, IDLType idlType);	
 	
-	public void serializeRecord(Object value);
+	public void serializeRecord(Object value,IDLType idlType);
 	
-	public void serializeVariant(Object value);
+	public void serializeVariant(Object value, IDLType idlType);
 	
 	public void serializePrincipal(Principal value);
 

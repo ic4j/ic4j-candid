@@ -47,6 +47,9 @@ public final class TypeSerialize {
 	}
 
 	void buildType(IDLType type) {
+		if(type == null)
+			type= IDLType.createType(Type.NULL);
+		
 		if (this.typeMap.containsKey(type))
 			return;
 
@@ -119,6 +122,9 @@ public final class TypeSerialize {
 	}
 
 	byte[] encode(IDLType idlType) {
+		if(idlType == null)
+			return Leb128.writeSigned(Opcode.NULL.value);
+		
 		Type type = idlType.getType();
 		switch (type) {
 		case NULL:

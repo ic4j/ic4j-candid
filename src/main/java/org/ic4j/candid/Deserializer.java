@@ -157,7 +157,7 @@ public final class Deserializer {
 
 		BigInteger value = Numbers.decodeBigNat(this.input);
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.NAT);
 	}
 
 	public IDLValue deserializeInt() {
@@ -166,7 +166,7 @@ public final class Deserializer {
 
 		BigInteger value = Numbers.decodeBigInt(this.input);
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.INT);
 	}
 
 	public IDLValue deserializeFloat64() {
@@ -175,7 +175,7 @@ public final class Deserializer {
 
 		Double value = ByteBuffer.wrap(this.input.parseBytes(Double.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getDouble();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.FLOAT64);
 	}
 
 	public IDLValue deserializeFloat32() {
@@ -184,7 +184,7 @@ public final class Deserializer {
 
 		Float value = ByteBuffer.wrap(this.input.parseBytes(Float.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.FLOAT32);
 	}
 
 	public IDLValue deserializeNat8() {
@@ -193,7 +193,7 @@ public final class Deserializer {
 
 		Byte value = this.input.parseByte();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.NAT8);
 	}
 
 	public IDLValue deserializeNat16() {
@@ -202,7 +202,7 @@ public final class Deserializer {
 
 		Short value = ByteBuffer.wrap(this.input.parseBytes(Short.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getShort();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.NAT16);
 	}
 
 	public IDLValue deserializeNat32() {
@@ -211,7 +211,7 @@ public final class Deserializer {
 
 		Integer value = ByteBuffer.wrap(this.input.parseBytes(Integer.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.NAT32);
 	}
 
 	public IDLValue deserializeNat64() {
@@ -220,7 +220,7 @@ public final class Deserializer {
 
 		Long value = ByteBuffer.wrap(this.input.parseBytes(Long.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getLong();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.NAT64);
 	}
 
 	public IDLValue deserializeInt8() {
@@ -229,7 +229,7 @@ public final class Deserializer {
 
 		Byte value = this.input.parseByte();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.INT8);
 	}
 
 	public IDLValue deserializeInt16() {
@@ -238,7 +238,7 @@ public final class Deserializer {
 
 		Short value = ByteBuffer.wrap(this.input.parseBytes(Short.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getShort();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.INT16);
 	}
 
 	public IDLValue deserializeInt32() {
@@ -247,7 +247,7 @@ public final class Deserializer {
 
 		Integer value = ByteBuffer.wrap(this.input.parseBytes(Integer.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.INT32);
 	}
 
 	public IDLValue deserializeInt64() {
@@ -256,7 +256,7 @@ public final class Deserializer {
 
 		Long value = ByteBuffer.wrap(this.input.parseBytes(Long.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getLong();
 
-		return IDLValue.create(value);
+		return IDLValue.create(value, Type.INT64);
 	}
 
 	public IDLValue deserializeOpt() {
@@ -265,6 +265,8 @@ public final class Deserializer {
 		Optional value;
 		
 		Optional<IDLType> expectedType =this.expectedType;
+		
+		IDLType innerIdlType = IDLType.createType(Type.NULL);
 
 		switch (this.table.peekType()) {
 		case OPT:
@@ -277,10 +279,20 @@ public final class Deserializer {
 			this.table.parseType();
 			switch (this.input.parseByte()) {
 			case 0:
+				Integer ty = this.table.popCurrentType().intValue();
+				
+				try {
+					innerIdlType = IDLType.createType(Type.from(ty));
+				}catch(CandidError e)
+				{
+					innerIdlType = IDLType.createType(Type.NULL);
+				}
 				value = Optional.empty();
 				break;
 			case 1:
-				value = Optional.of(this.deserializeAny().getValue());
+				IDLValue idlValue = this.deserializeAny();
+				innerIdlType = idlValue.getIDLType();
+				value = Optional.ofNullable(idlValue.getValue());
 				break;
 			default:
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Not an option tag"));
@@ -292,12 +304,12 @@ public final class Deserializer {
 			value = Optional.empty();
 			break;
 		default:
-			value = Optional.of(this.deserializeAny().getValue());
+			value = Optional.ofNullable(this.deserializeAny().getValue());
 		}
 
 		this.expectedType = expectedType;
 		
-		return IDLValue.create(value);
+		return IDLValue.create(value, IDLType.createType(Type.OPT, innerIdlType));
 	}
 
 	public IDLValue deserializeVec() {
@@ -306,6 +318,8 @@ public final class Deserializer {
 		Object value;
 		
 		Optional<IDLType> expectedType =this.expectedType;
+		
+		IDLType innerIdlType = null;
 
 		switch (this.table.parseType()) {
 		case VEC: {
@@ -326,6 +340,8 @@ public final class Deserializer {
 
 				values.add(idlValue.getValue());
 				
+				innerIdlType = idlValue.getIDLType();
+				
 				this.table.currentType.addFirst(ty);
 			}
 
@@ -345,7 +361,10 @@ public final class Deserializer {
 		
 		this.expectedType = expectedType;
 		
-		return IDLValue.create(value);
+		if(innerIdlType == null)
+			return IDLValue.create(value);
+		else
+			return IDLValue.create(value, IDLType.createType(Type.VEC, innerIdlType));
 	}
 
 	public IDLValue deserializeRecord() {
@@ -354,7 +373,7 @@ public final class Deserializer {
 		this.table.checkType(Opcode.RECORD);
 		
 		Optional<IDLType> expectedType = this.expectedType;
-		Optional<Map<Label,IDLType>> typeMap = Optional.empty();
+		Optional<Map<Label,IDLType>> expectedTypeMap = Optional.empty();
 		
 
 		this.recordNestingDepth++;
@@ -367,7 +386,7 @@ public final class Deserializer {
 			if(expectedType.get().getType() != Type.RECORD)
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Not an expected type"));
 			else
-				typeMap = Optional.ofNullable(expectedType.get().getTypeMap());
+				expectedTypeMap = Optional.ofNullable(expectedType.get().getTypeMap());
 
 		int len = this.table.popCurrentType().intValue();
 
@@ -378,15 +397,17 @@ public final class Deserializer {
 		for (int i = 0; i < len; i++) {
 			Long hash = currentType[2 * i];
 			if (fs.put(hash, Optional.empty()) != null)
-				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Hash collision %d", hash));
 		}
 
-		Map<Object, Object> map = new TreeMap<Object, Object>();
+		Map<Label, Object> map = new TreeMap<Label, Object>();
 		
 		Map<Long, Label> labels = new TreeMap<Long, Label>();
 		
-		if(typeMap.isPresent())
-			for(Label label : typeMap.get().keySet())
+		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
+		
+		if(expectedTypeMap.isPresent())
+			for(Label label : expectedTypeMap.get().keySet())
 				labels.put(label.getId(), label);
 
 		for (int i = 0; i < len; i++) {
@@ -396,12 +417,15 @@ public final class Deserializer {
 
 			Optional field = fs.get(hash);
 
+			Label label;
+			
+			if(field == null)			
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown hash %d", hash));			
+
 			if (field.isPresent())
 				key = field.get();
 			else
-				key = hash;
-			
-			Label label;
+				key = hash;			
 			
 			if(key instanceof String)
 				label = Label.createNamedLabel((String) key);
@@ -411,19 +435,19 @@ public final class Deserializer {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Label Type");
 			
 			// assign named Label, if exists
-			if(typeMap.isPresent())
+			if(expectedTypeMap.isPresent())
 				if(labels.containsKey(key))
 				{
 					label = labels.get(key);
-					this.expectedType = Optional.ofNullable(typeMap.get().get(label));
-					
-					key = label.getValue();
+					this.expectedType = Optional.ofNullable(expectedTypeMap.get().get(label));
 				}
 				else this.expectedType = Optional.empty();
 
 			IDLValue idlValue = this.deserializeAny();
 			
 			this.expectedType = expectedType;
+			
+			typeMap.put(label, idlValue.getIDLType());
 
 			map.put(label, idlValue.getValue());
 		}
@@ -432,7 +456,7 @@ public final class Deserializer {
 		
 		this.expectedType = expectedType;
 
-		return IDLValue.create(map);
+		return IDLValue.create(map, typeMap);
 	}
 	
 	public IDLValue deserializeVariant()
@@ -462,44 +486,62 @@ public final class Deserializer {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
 		}
 		
-		Map<Object, Object> map = new TreeMap<Object, Object>();
+		Map<Label, Object> map = new TreeMap<Label, Object>();
 		
 		long idx = this.input.leb128Read();
+		
+		Optional<Long> indexTy = Optional.empty();
 
+		Object key = null;
+		
+		Label label = null;
 		for (int i = 0; i < len; i++) {			
-			Object key;
-
 			Long hash = this.table.popCurrentType();
+			Long ty = this.table.popCurrentType();
 			
 			if(i == idx)
 			{	
 				Optional field = fs.get(hash);
-	
+
+				if(field == null)			
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown hash %d", hash));			
+				
 				if (field.isPresent())
 					key = field.get();
 				else
 					key = hash;
 				
+				if(key instanceof String)
+					label = Label.createNamedLabel((String) key);
+				else if(key instanceof Long)
+					label = Label.createIdLabel((Long) key);
+				else
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Label Type");				
+				
 				// assign named Label, if exists
 				if(typeMap.isPresent() && typeMap.get().keySet().iterator().hasNext())
 				{
-					Label label = typeMap.get().keySet().iterator().next();
-					this.expectedType = Optional.ofNullable(typeMap.get().get(label));
-							
-					key = label.getValue();
+					label = typeMap.get().keySet().iterator().next();
+					this.expectedType = Optional.ofNullable(typeMap.get().get(label));							
 				}
 				else 
 					this.expectedType = Optional.empty();
 	
-				IDLValue idlValue = this.deserializeAny();
 				
-				this.expectedType = expectedType;
-	
-				map.put(key, idlValue.getValue());
+				indexTy = Optional.of(ty);
 			}
 		}
+				
+		this.table.currentType.addFirst(indexTy.get());
+		
+		IDLValue idlValue = this.deserializeAny();
 		
 		this.expectedType = expectedType;
+
+		if(label == null)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown variant label"));	
+		
+		map.put(label, idlValue.getValue());
 
 		if(this.expectedType.isPresent())
 			return IDLValue.create(map, this.expectedType.get());
