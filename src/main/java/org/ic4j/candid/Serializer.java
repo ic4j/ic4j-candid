@@ -39,7 +39,15 @@ public interface Serializer {
 	
 	public void serializeNat32(Integer value);
 	
-	public void serializeNat64(Long value);		
+	public void serializeNat64(Long value);	
+	
+	public void serializeNat8(Short value);
+	
+	public void serializeNat16(Integer value);
+	
+	public void serializeNat32(Long value);
+	
+	public void serializeNat64(BigInteger value);		
 	
 	public void serializeInt(BigInteger value);
 

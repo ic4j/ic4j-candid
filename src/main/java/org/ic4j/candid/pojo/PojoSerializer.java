@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.ic4j.candid.annotations.Id;
 import org.ic4j.candid.annotations.Ignore;
 import org.ic4j.candid.annotations.Name;
 import org.ic4j.candid.parser.IDLType;
@@ -32,7 +33,7 @@ import org.ic4j.candid.types.Type;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectSerializer;
 
-public class PojoSerializer implements ObjectSerializer {
+public final class PojoSerializer implements ObjectSerializer {
 	
 	public static PojoSerializer create() {
 		PojoSerializer deserializer = new PojoSerializer();
@@ -68,7 +69,7 @@ public class PojoSerializer implements ObjectSerializer {
 			{
 				Object item = array[i];
 				
-				IDLValue itemIDLValue = this.getIDLValue(item);
+				IDLValue itemIDLValue = this.getIDLValue(item, Type.VEC);
 				
 				arrayValue.add(itemIDLValue.getValue());
 				
@@ -80,14 +81,14 @@ public class PojoSerializer implements ObjectSerializer {
 		}
 		else
 		{			
-			idlValue = this.getIDLValue(value);
+			idlValue = this.getIDLValue(value, null);
 		}
 
 		return idlValue;
 	}
 	
 	// Introspect POJO Class
-	IDLValue getIDLValue(Object value)
+	IDLValue getIDLValue(Object value, Type parentType)
 	{
 		// handle null values
 		if(value == null)
@@ -107,7 +108,7 @@ public class PojoSerializer implements ObjectSerializer {
 					return IDLValue.create(optionalValue);
 				else
 				{
-					IDLValue nestedIdlValue = this.getIDLValue(nestedValue);
+					IDLValue nestedIdlValue = this.getIDLValue(nestedValue, Type.OPT);
 					
 					IDLType nestedIdlType = nestedIdlValue.getIDLType();
 					return IDLValue.create(Optional.ofNullable(nestedIdlValue.getValue()), IDLType.createType(Type.OPT, nestedIdlType));
@@ -121,11 +122,16 @@ public class PojoSerializer implements ObjectSerializer {
 		Field[] fields = valueClass.getDeclaredFields();
 		
 		for(Field field : fields)
-		{
+		{			
 			if(field.isAnnotationPresent(Ignore.class))
 				continue;
 			
+			field.setAccessible(true);
+			
 			String name = field.getName();
+			if(name.startsWith("this$"))
+					continue;
+			
 			Class typeClass = field.getType();
 			
 			Object item = null;
@@ -142,12 +148,21 @@ public class PojoSerializer implements ObjectSerializer {
 			if(field.isAnnotationPresent(Name.class))
 				name = field.getAnnotation(Name.class).value();
 			
+			Label label;
+			if (field.isAnnotationPresent(Id.class))
+			{
+				int id = field.getAnnotation(Id.class).value();
+				label = Label.createIdLabel((long) id);
+			}
+			else
+				label = Label.createNamedLabel((String)name);
+			
 			if(item == null)
 			{
 				// set NULL value
 				fieldType = IDLType.createType(Type.NULL);
 				
-				typeMap.put(Label.createNamedLabel((String)name),fieldType);	
+				typeMap.put(label,fieldType);	
 				valueMap.put(Label.createNamedLabel((String)name), item);
 				continue;
 			}
@@ -161,15 +176,15 @@ public class PojoSerializer implements ObjectSerializer {
 			{
 				// if we do not specify type in annotation and type is one of default
 				fieldType = IDLType.createType(item);
-				typeMap.put(Label.createNamedLabel((String)name), fieldType);	
-				valueMap.put(Label.createNamedLabel((String)name), item);
+				typeMap.put(label, fieldType);	
+				valueMap.put(label, item);
 				continue;
 			}
 			else
 				fieldType = IDLType.createType(Type.RECORD);
 			
 			// do nested type introspection if type is RECORD		
-			if(fieldType.getType() == Type.RECORD)
+			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
 			{
 				
 				// handle RECORD arrays
@@ -182,11 +197,11 @@ public class PojoSerializer implements ObjectSerializer {
 					for(int i = 0; i < nestedArray.length; i++)
 					{
 						Object nestedValue = nestedArray[i];
-						// if nested RECORD is Optional 
+						// if nested RECORD or VARIANT is Optional 
 						if(nestedValue != null && Optional.class.isAssignableFrom(nestedValue.getClass()))
 							nestedValue = ((Optional)nestedValue).orElse(null);
 						
-						IDLValue nestedIdlValue = this.getIDLValue(nestedValue);
+						IDLValue nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType());
 						
 						fieldType = nestedIdlValue.getIDLType();
 						
@@ -199,11 +214,11 @@ public class PojoSerializer implements ObjectSerializer {
 				else
 				{
 					Object nestedValue = item;
-					// if nested RECORD is Optional 
+					// if nested RECORD or VARIANT is Optional 
 					if(item != null && Optional.class.isAssignableFrom(typeClass))
 						nestedValue = ((Optional)item).orElse(null);
 					
-					IDLValue nestedIdlValue = this.getIDLValue(nestedValue);
+					IDLValue nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType());
 					
 					fieldType = nestedIdlValue.getIDLType();
 					
@@ -215,8 +230,7 @@ public class PojoSerializer implements ObjectSerializer {
 				fieldType = IDLType.createType(Type.VEC, fieldType);
 			}else if(isOptional)
 			{
-				// handle Optional, not record types
-				
+				// handle Optional, not record types			
 				fieldType = IDLType.createType(Type.OPT, fieldType);
 			}
 
@@ -226,12 +240,15 @@ public class PojoSerializer implements ObjectSerializer {
 			if(fieldType.getType() == Type.PRINCIPAL)
 				item = IDLUtils.objectToPrincipal(item);
 			
-			typeMap.put(Label.createNamedLabel((String)name), fieldType);	
-			valueMap.put(Label.createNamedLabel((String)name), item);
+			typeMap.put(label, fieldType);	
+			valueMap.put(label, item);
 				
 		}	
 		
-		IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+		if(parentType == null || parentType != Type.VARIANT)
+			parentType = Type.RECORD;
+		
+		IDLType idlType = IDLType.createType(parentType, typeMap);
 		IDLValue idlValue = IDLValue.create(valueMap, idlType);
 		
 		return idlValue;
@@ -260,12 +277,24 @@ public class PojoSerializer implements ObjectSerializer {
 				continue;
 			
 			String name = field.getName();
+			if(name.startsWith("this$"))
+				continue;
+			
 			Class typeClass = field.getType();	
 			
 			IDLType fieldType = this.getIDLType(typeClass);
 			
 			if(field.isAnnotationPresent(Name.class))
 				name = field.getAnnotation(Name.class).value();
+			
+			Label label;
+			if (field.isAnnotationPresent(Id.class))
+			{
+				int id = field.getAnnotation(Id.class).value();
+				label = Label.createIdLabel((long) id);
+			}
+			else
+				label = Label.createNamedLabel((String)name);			
 						
 			boolean isArray = typeClass.isArray();
 			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
@@ -275,14 +304,14 @@ public class PojoSerializer implements ObjectSerializer {
 			else if(IDLType.isDefaultType(typeClass))
 			{
 				// if we do not specify type in annotation and type is one of default
-				typeMap.put(Label.createNamedLabel((String)name), fieldType);	
+				typeMap.put(label, fieldType);	
 				continue;
 			}
 			else
 				fieldType = IDLType.createType(Type.RECORD);
 			
 			// do nested type introspection if type is RECORD		
-			if(fieldType.getType() == Type.RECORD)
+			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
 			{
 				
 				// handle RECORD arrays
@@ -303,7 +332,7 @@ public class PojoSerializer implements ObjectSerializer {
 				fieldType = IDLType.createType(Type.OPT, fieldType);
 			}
 			
-			typeMap.put(Label.createNamedLabel((String)name), fieldType);	
+			typeMap.put(label, fieldType);	
 
 		}	
 		

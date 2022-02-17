@@ -17,13 +17,17 @@
 package org.ic4j.candid.pojo;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.ic4j.candid.annotations.Id;
+import org.ic4j.candid.annotations.Ignore;
 import org.ic4j.candid.annotations.Name;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
@@ -34,7 +38,7 @@ import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 
-public class PojoDeserializer implements ObjectDeserializer {
+public final class PojoDeserializer implements ObjectDeserializer {
 
 	public static PojoDeserializer create() {
 		PojoDeserializer deserializer = new PojoDeserializer();
@@ -133,10 +137,23 @@ public class PojoDeserializer implements ObjectDeserializer {
 
 		// handle Map, match with clazz type
 		if (Map.class.isAssignableFrom(value.getClass())) {
-			T pojoValue;
+			T pojoValue = null;
+			if(clazz.getConstructors().length == 0)
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,  "Cannot instantiate class " + clazz.getCanonicalName() + ". Missing constructor.");
 			try {
-				pojoValue = clazz.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
+				for(Constructor constructor : clazz.getConstructors())
+				{
+					if(constructor.getParameterCount() == 0)
+					{
+						constructor.setAccessible(true);
+						pojoValue = (T) constructor.newInstance();
+						continue;
+					}				
+				}
+				if(pojoValue == null)
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,  "Cannot instantiate class " + clazz.getCanonicalName() + ".");
+
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, e, e.getLocalizedMessage());
 			}
 
@@ -145,13 +162,30 @@ public class PojoDeserializer implements ObjectDeserializer {
 			Field[] fields = clazz.getDeclaredFields();
 
 			for (Field field : fields) {
+				if(field.isAnnotationPresent(Ignore.class))
+					continue;
+				
+				field.setAccessible(true);
+				
 				String name = field.getName();
+				if(name.startsWith("this$"))
+						continue;
+				
 				Class typeClass = field.getType();
 
 				if (field.isAnnotationPresent(Name.class))
 					name = field.getAnnotation(Name.class).value();
 
-				Object item = valueMap.get(Label.createNamedLabel(name));
+				Label label;
+				if (field.isAnnotationPresent(Id.class))
+				{
+					int id = field.getAnnotation(Id.class).value();
+					label = Label.createIdLabel((long) id);
+				}
+				else	
+					label = Label.createNamedLabel(name);
+				
+				Object item = valueMap.get(label);
 
 				if (!IDLType.isDefaultType(typeClass))
 					item = this.getValue(item, typeClass);

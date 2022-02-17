@@ -34,6 +34,11 @@ public class Label implements Comparable<Label> {
 	public Object getValue() {
 		return this.value;
 	}
+	
+	public LabelType getType()
+	{
+		return this.type;
+	}
 
 	public Long getId() {
 		switch (this.type) {

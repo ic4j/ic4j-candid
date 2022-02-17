@@ -85,5 +85,61 @@ public enum Type {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown type %d", value));
 		}
 	}
+	
+	public static Type from(String value)
+	{
+		switch (value) {
+		case "NULL":
+			return NULL;
+		case "BOOL":
+			return BOOL;
+		case "INT":
+			return INT;
+		case "INT8":
+			return INT8;
+		case "INT16":
+			return INT16;
+		case "INT32":
+			return INT32;
+		case "INT64":
+			return INT64;
+		case "NAT":
+			return NAT;
+		case "NAT8":
+			return NAT8;
+		case "NAT16":
+			return NAT16;
+		case "NAT32":
+			return NAT32;
+		case "NAT64":
+			return NAT64;
+		case "FLOAT32":
+			return FLOAT32;
+		case "FLOAT64":
+			return FLOAT64;
+		case "TEXT":
+			return TEXT;
+		case "RESERVED":
+			return RESERVED;
+		case "EMPTY":
+			return EMPTY;
+		case "OPT":
+			return OPT;				
+		case "PRINCIPAL":
+			return PRINCIPAL;
+		case "VEC":
+			return VEC;	
+		case "RECORD":
+			return RECORD;	
+		case "VARIANT":
+			return VARIANT;
+		case "FUNC":
+			return FUNC;
+		case "SERVICE":
+			return SERVICE;				
+		default:
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown type %s", value));
+		}
+	}
 
 }

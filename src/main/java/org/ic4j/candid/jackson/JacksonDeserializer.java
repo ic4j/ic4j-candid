@@ -47,7 +47,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ShortNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-public class JacksonDeserializer implements ObjectDeserializer {
+public final class JacksonDeserializer implements ObjectDeserializer {
 	Optional<IDLType> idlType = Optional.empty();
 	ObjectMapper mapper = new ObjectMapper();	
 	
@@ -159,7 +159,8 @@ public class JacksonDeserializer implements ObjectDeserializer {
 			type = expectedIdlType.get().getType();
 			if(idlType != null)		
 				idlType = expectedIdlType.get();
-		}
+		}else if(idlType != null)
+			type = idlType.getType();
 		
 		if(type.isPrimitive())
 			return this.getPrimitiveValue(type,value);
@@ -213,6 +214,7 @@ public class JacksonDeserializer implements ObjectDeserializer {
 		
 		if(type == Type.RECORD || type == Type.VARIANT)
 		{
+			ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
 			ObjectNode treeNode = JsonNodeFactory.instance.objectNode();
 			
 			Map<Label,Object> valueMap = (Map<Label, Object>) value;
@@ -233,6 +235,11 @@ public class JacksonDeserializer implements ObjectDeserializer {
 			
 			for(Label label : labels)
 			{
+				boolean isNamed = false;
+				
+				if(label.getType() == Label.LabelType.NAMED)
+					isNamed = true;
+				
 				String fieldName;
 				
 				IDLType itemIdlType = typeMap.get(label);
@@ -245,17 +252,32 @@ public class JacksonDeserializer implements ObjectDeserializer {
 					
 					Label expectedLabel = expectedLabels.get(label.getId());
 					
-					fieldName = expectedLabel.toString();
+					if(expectedLabel.getType() == Label.LabelType.NAMED)
+						isNamed = true;
+					
+					fieldName = expectedLabel.getValue().toString();
 				}
 				else
-					fieldName = label.toString();
+					fieldName = label.getValue().toString();
 				
 				JsonNode itemNode = this.getValue(itemIdlType, Optional.ofNullable(expectedItemIdlType), valueMap.get(label));
 				
-				treeNode.set(fieldName, itemNode);
+				if(isNamed)
+					treeNode.set(fieldName, itemNode);
+				else
+					arrayNode.add(itemNode);
 			}
 			
-			return treeNode;
+			if(arrayNode.isEmpty())
+				return treeNode;
+			else if(treeNode.isEmpty())
+				return arrayNode;
+			else
+			{
+				arrayNode.add(treeNode);
+				return arrayNode;
+			}
+			
 		}		
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 				"Cannot convert type " + type.name());

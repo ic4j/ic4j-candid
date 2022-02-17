@@ -23,6 +23,10 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 public final class DOMTest extends CandidAssert {
+	static final String SIMPLE_NODE_FILE = "SimpleNode.xml";
+	static final String SIMPLE_ARRAY_NODE_FILE = "ComplexNode.xml";
+	static final String TRADE_ARRAY_NODE_FILE = "TradeArrayNode.xml";
+	
 	// Instantiate the Factory
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -35,11 +39,12 @@ public final class DOMTest extends CandidAssert {
 		dbf.setNamespaceAware(true);
 		dbf.setIgnoringElementContentWhitespace(true);
 
-		this.testDom("SimpleNode.xml", null);
-		this.testDom("ComplexNode.xml", null);
+		this.testDom(SIMPLE_NODE_FILE, null, false);
+		this.testDom(SIMPLE_ARRAY_NODE_FILE, null,false);
+		this.testDom(TRADE_ARRAY_NODE_FILE, null,true);
 	}
 
-	void testDom(String fileName, IDLType idlType) {
+	void testDom(String fileName, IDLType idlType, boolean attributes) {
 		try {
 			Node domNode = this.readNode(fileName);
 
@@ -58,10 +63,16 @@ public final class DOMTest extends CandidAssert {
 			byte[] buf = idlArgs.toBytes();
 
 			DOMDeserializer domDeserializer = DOMDeserializer.create(idlValue.getIDLType())
-					.rootElement("http://scaleton.com/dfinity/candid", "data");
-			// domDeserializer = domDeserializer.setAttributes(true);
+					.rootElement("http://ic4j.org/candid/test", "data").setAttributes(attributes);
 
 			Node domNodeResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(domDeserializer, Node.class);
+			
+			try {
+				String result = DOMUtils.getStringFromDocument(domNodeResult.getOwnerDocument());
+				LOG.debug(result);
+			} catch (TransformerException e) {
+				LOG.error(e.getLocalizedMessage(), e);
+			}
 
 //			Assertions.assertTrue(domNode.isEqualNode(domNodeResult));
 

@@ -104,6 +104,39 @@ public final class ValueSerializer implements Serializer{
 	    output.putLong(value);
 	    
 		this.value = ArrayUtils.addAll(this.value, output.array());
+    }
+	
+	public final void serializeNat8(Short value)
+    {   		
+		ByteBuffer output = ByteBuffer.allocate(Short.BYTES);
+		output.order(ByteOrder.LITTLE_ENDIAN);
+	    output.putShort(value);
+	    
+		this.value = ArrayUtils.addAll(this.value, output.array());
+    }
+	
+	public final void serializeNat16(Integer value)
+    { 
+		ByteBuffer output = ByteBuffer.allocate(Integer.BYTES);
+		output.order(ByteOrder.LITTLE_ENDIAN);
+	    output.putInt(value);
+	    
+		this.value = ArrayUtils.addAll(this.value, output.array());
+    }
+	
+	
+	public final void serializeNat32(Long value)
+    { 		
+		ByteBuffer output = ByteBuffer.allocate(Long.BYTES);
+		output.order(ByteOrder.LITTLE_ENDIAN);
+	    output.putLong(value);
+	    
+		this.value = ArrayUtils.addAll(this.value, output.array());
+    }
+	
+	public final void serializeNat64(BigInteger value)
+    { 		
+		this.serializeNat(value);
     }	
 	
 	public final void serializeInt(BigInteger value)

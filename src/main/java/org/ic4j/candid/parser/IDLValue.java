@@ -119,16 +119,16 @@ public final class IDLValue implements Deserialize{
 		case NAT:
 			serializer.serializeNat((BigInteger) value.get());
 			break;
-		case NAT8:
+		case NAT8:			
 			serializer.serializeNat8((Byte) value.get());
 			break;
 		case NAT16:
 			serializer.serializeNat16((Short) value.get());
 			break;
 		case NAT32:
-			serializer.serializeNat32((Integer) value.get());
+			serializer.serializeNat32((Integer)value.get());
 			break;
-		case NAT64:
+		case NAT64:			
 			serializer.serializeNat64((Long) value.get());
 			break;			
 		case INT:

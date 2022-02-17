@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JacksonSerializer implements ObjectSerializer {
+public final class JacksonSerializer implements ObjectSerializer {
 	Optional<IDLType> idlType = Optional.empty();
 	
 	ObjectMapper mapper = new ObjectMapper();
@@ -175,6 +175,9 @@ public class JacksonSerializer implements ObjectSerializer {
 			type = expectedIdlType.get().getType();
 		else
 			type = this.getType(value);
+		
+		if(type == Type.NULL || type == Type.EMPTY)
+			return IDLValue.create(null, type);
 
 		// handle primitives
 
@@ -223,9 +226,7 @@ public class JacksonSerializer implements ObjectSerializer {
 		}
 
 		// handle Objects
-		if (type == Type.RECORD || type == Type.VARIANT) {
-			ObjectNode objectNode = (ObjectNode) value;
-
+		if (type == Type.RECORD || type == Type.VARIANT) {			
 			Map<Label, Object> valueMap = new TreeMap<Label, Object>();
 			Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
 			Map<Label, IDLType> expectedTypeMap = new TreeMap<Label, IDLType>();
@@ -233,34 +234,84 @@ public class JacksonSerializer implements ObjectSerializer {
 			if (expectedIdlType.isPresent())
 				expectedTypeMap = expectedIdlType.get().getTypeMap();
 
-			Iterator<String> fieldNames = objectNode.fieldNames();
-
-			while (fieldNames.hasNext()) {
-				String name = fieldNames.next();
-
-				JsonNode item = objectNode.get(name);
-
-				IDLType expectedItemIdlType;
-
-				if (expectedIdlType.isPresent() && expectedTypeMap != null)
-					expectedItemIdlType = expectedTypeMap.get(Label.createNamedLabel(name));
-				else
-					expectedItemIdlType = IDLType.createType(this.getType(item));
-
-				if (expectedItemIdlType == null)
-					continue;
-
-				IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), item);
-
-				typeMap.put(Label.createNamedLabel((String) name), itemIdlValue.getIDLType());
-				valueMap.put(Label.createNamedLabel((String) name), itemIdlValue.getValue());
+			if(value.isArray())
+			{
+				ArrayNode arrayNode = (ArrayNode) value;
+				for (int i = 0; i < arrayNode.size(); i++) {
+					JsonNode item = arrayNode.get(i);
+					IDLType expectedItemIdlType;
+					
+					if (expectedIdlType.isPresent() && expectedTypeMap != null)
+						expectedItemIdlType = expectedTypeMap.get(Label.createUnnamedLabel((long)i));
+					else
+						expectedItemIdlType = IDLType.createType(this.getType(item));
+	
+					if (expectedItemIdlType == null)
+						continue;
+	
+					IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), item);
+	
+					typeMap.put(Label.createUnnamedLabel((long)i), itemIdlValue.getIDLType());
+					valueMap.put(Label.createUnnamedLabel((long)i), itemIdlValue.getValue());
+				}								
+			}			
+			else
+			{
+				ObjectNode objectNode = (ObjectNode) value;
+				Iterator<String> fieldNames = objectNode.fieldNames();
+	
+				while (fieldNames.hasNext()) {
+					String name = fieldNames.next();
+	
+					JsonNode item = objectNode.get(name);
+	
+					IDLType expectedItemIdlType;
+	
+					if (expectedIdlType.isPresent() && expectedTypeMap != null)
+						expectedItemIdlType = expectedTypeMap.get(Label.createNamedLabel(name));
+					else
+						expectedItemIdlType = IDLType.createType(this.getType(item));
+	
+					if (expectedItemIdlType == null)
+						continue;
+	
+					IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), item);
+	
+					typeMap.put(Label.createNamedLabel((String) name), itemIdlValue.getIDLType());
+					valueMap.put(Label.createNamedLabel((String) name), itemIdlValue.getValue());
+				}
 			}
 
-			IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+			IDLType idlType = IDLType.createType(type, typeMap);
 			IDLValue idlValue = IDLValue.create(valueMap, idlType);
 
 			return idlValue;
 		}
+		
+		if (type == Type.OPT)
+		{
+			if (expectedIdlType.isPresent())
+			{
+				if(value.isArray() && value.isEmpty())
+					return IDLValue.create(Optional.empty(), expectedIdlType.get());
+				
+				IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedIdlType.get().getInnerType()), value);
+				
+				return IDLValue.create(Optional.ofNullable(itemIdlValue.getValue()), expectedIdlType.get());
+			}
+			else
+			{
+				if(value.isNull())
+					return IDLValue.create(Optional.empty(), IDLType.createType(Type.OPT));
+				
+				if(value.isArray() && value.isEmpty())
+					return IDLValue.create(Optional.empty(), IDLType.createType(Type.OPT));
+				
+				IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable( IDLType.createType(Type.OPT)), value);
+				
+				return IDLValue.create(Optional.ofNullable(itemIdlValue.getValue()), IDLType.createType(Type.OPT));							
+			}							
+		}		
 
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Cannot convert type " + type.name());
 

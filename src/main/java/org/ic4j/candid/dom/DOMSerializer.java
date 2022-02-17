@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.ic4j.candid.parser.IDLType;
@@ -39,7 +38,7 @@ import org.ic4j.candid.CandidError;
 import org.ic4j.candid.ObjectSerializer;
 import org.ic4j.types.Principal;
 
-public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
+public final class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 
 	public static DOMSerializer create(IDLType idlType) {
 		DOMSerializer serializer = new DOMSerializer();
@@ -66,12 +65,12 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 		if (!Element.class.isAssignableFrom(value.getClass()))
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					value.getClass().getName() + " is not assignable from " + Element.class.getName());
-		
-		this.namespace = Optional.ofNullable(((Element)value).getNamespaceURI());
 
-		if(this.namespace.isPresent())
+		this.namespace = Optional.ofNullable(((Element) value).getNamespaceURI());
+
+		if (this.namespace.isPresent())
 			this.isQualified = true;
-		
+
 		return this.getIDLValue(this.idlType, (Element) value);
 	}
 
@@ -82,6 +81,9 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			return result;
 
 		Text textNode = this.getTextNode(value);
+		
+		if(textNode == null)
+			return result;
 
 		String textValue = textNode.getTextContent();
 
@@ -146,56 +148,23 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			return Type.NULL;
 
 		String type = null;
-		if(this.isQualified)
-		{
-			if (value.hasAttributeNS(CANDID_NS, CANDID_TYPE_ATTR_NAME)) 
+		if (this.isQualified) {
+			if (value.hasAttributeNS(CANDID_NS, CANDID_TYPE_ATTR_NAME))
 				type = value.getAttributeNS(CANDID_NS, CANDID_TYPE_ATTR_NAME);
-		}
-		else
-		{
-			if (value.hasAttribute(CANDID_TYPE_ATTR_NAME)) 
+		} else {
+			if (value.hasAttribute(CANDID_TYPE_ATTR_NAME))
 				type = value.getAttribute(CANDID_TYPE_ATTR_NAME);
 		}
-		
-		if(type != null)
-		{
-			switch (type) {
-			case "BOOL":
-				return Type.BOOL;
-			case "INT":
-				return Type.INT;
-			case "INT8":
-				return Type.INT8;
-			case "INT16":
-				return Type.INT16;
-			case "INT32":
-				return Type.INT32;
-			case "INT64":
-				return Type.INT64;
-			case "NAT":
-				return Type.NAT;
-			case "NAT8":
-				return Type.NAT8;
-			case "NAT16":
-				return Type.NAT16;
-			case "NAT32":
-				return Type.NAT32;
-			case "NAT64":
-				return Type.NAT64;
-			case "FLOAT32":
-				return Type.FLOAT32;
-			case "FLOAT64":
-				return Type.FLOAT64;
-			case "TEXT":
-				return Type.TEXT;
-			case "PRINCIPAL":
-				return Type.PRINCIPAL;
-			default:
-				return Type.TEXT;
 
-			}
-		}		
-		
+		if (type != null) {
+			Type actualType = Type.from(type);
+
+			if (actualType.isPrimitive())
+				return actualType;
+			else
+				return Type.TEXT;
+		}
+
 		if (value.hasAttributeNS(XML_XSI_NS, XML_TYPE_ATTR_NAME)) {
 			type = value.getAttributeNS(XML_XSI_NS, XML_TYPE_ATTR_NAME);
 
@@ -238,9 +207,8 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 
 		return Type.TEXT;
 	}
-	
-	IDLValue getArrayIDLValue(Optional<IDLType> expectedIdlType, Element value, String localName)
-	{
+
+	IDLValue getArrayIDLValue(Optional<IDLType> expectedIdlType, Element value, String localName) {
 		IDLType innerIdlType = IDLType.createType(Type.NULL);
 
 		if (expectedIdlType.isPresent())
@@ -281,7 +249,7 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 				"Cannot convert class " + value.getClass().getName() + " to VEC");
-		
+
 	}
 
 	IDLValue getIDLValue(Optional<IDLType> expectedIdlType, Element value) {
@@ -290,23 +258,37 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			return IDLValue.create(value, Type.NULL);
 
 		Type type;
+		
+		String typeAttribute = null;
+		if (this.isQualified) {
+			if (value.hasAttributeNS(CANDID_NS, CANDID_TYPE_ATTR_NAME))
+				typeAttribute = value.getAttributeNS(CANDID_NS, CANDID_TYPE_ATTR_NAME);
+		} else {
+			if (value.hasAttribute(CANDID_TYPE_ATTR_NAME))
+				typeAttribute = value.getAttribute(CANDID_TYPE_ATTR_NAME);
+		}
+		if (typeAttribute != null) {
+			type = Type.from(typeAttribute);
+		}else
+			{
+				if (this.hasTextNode(value))
+				type = this.getPrimitiveType(value);
+			else {
+				MultiMap<QName, Element> elementMap = this.getFlatElements(value);
+	
+				QName itemQName = new QName(CANDID_NS, this.arrayItem);
+				// check if it's array
+				Collection<Element> items = elementMap.get(itemQName);
+	
+				if (items == null || items.isEmpty())
+					type = Type.RECORD;
+				else
+					type = Type.VEC;
+			}
+		}
+		
 		if (expectedIdlType.isPresent())
 			type = expectedIdlType.get().getType();
-		else if (this.hasTextNode(value))
-			type = this.getPrimitiveType(value);
-		else
-		{
-			MultiMap<String, Element> elementMap = this.getFlatElements(value);
-			
-			// check if it's array
-			Collection<Element> items = elementMap.get(this.arrayItem);
-			
-			if(items == null || items.isEmpty())
-				type = Type.RECORD;
-			else
-				type = Type.VEC;
-		}
-
 
 		// handle primitives
 
@@ -314,17 +296,16 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			return this.getPrimitiveIDLValue(type, value);
 
 		// handle arrays
-		if (type == Type.VEC) 
-		{
+		if (type == Type.VEC) {
 			if (!expectedIdlType.isPresent())
 				expectedIdlType = Optional.ofNullable(IDLType.createType(Type.VEC));
-				
-			return this.getArrayIDLValue(expectedIdlType, value, this.arrayItem);			
-		}	
+
+			return this.getArrayIDLValue(expectedIdlType, value, this.arrayItem);
+		}
 
 		// handle Objects
 		if (type == Type.RECORD || type == Type.VARIANT) {
-			MultiMap<String, Element> elementMap = this.getFlatElements(value);
+			MultiMap<QName, Element> elementMap = this.getFlatElements(value);
 
 			Map<Label, Object> valueMap = new TreeMap<Label, Object>();
 			Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
@@ -333,74 +314,157 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			if (expectedIdlType.isPresent())
 				expectedTypeMap = expectedIdlType.get().getTypeMap();
 
-			Iterator<String> fieldNames = elementMap.keySet().iterator();
+			Iterator<QName> fieldQNames = elementMap.keySet().iterator();
 
-			while (fieldNames.hasNext()) {
-				String name = fieldNames.next();
+			QName itemQName = new QName(CANDID_NS, this.arrayItem);
+			while (fieldQNames.hasNext()) {
+				QName qName = fieldQNames.next();
+				String name = qName.getLocalPart();
 
-				Collection<Element> items = elementMap.get(name);
+				Collection<Element> items = elementMap.get(qName);
 
 				IDLType expectedItemIdlType = null;
 
 				IDLValue itemIdlValue;
-				
-				if (expectedIdlType.isPresent() && expectedTypeMap != null)
-				{	
-					expectedItemIdlType = expectedTypeMap.get(Label.createNamedLabel(name));
-					
-					if(expectedItemIdlType == null)
-						continue;
-					
-					if(expectedItemIdlType.getType() == Type.VEC)
-						itemIdlValue = this.getArrayIDLValue(Optional.ofNullable(expectedItemIdlType), value, name);
-					else if(items.size() == 1)	
-						itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), items.iterator().next());
-					else
-						throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
-								"Invalid number of " + name + " elements");
-				}
-				else
-				{
-					if(items.size() == 1)
-						itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), items.iterator().next());
-					else
-						itemIdlValue = this.getArrayIDLValue(Optional.ofNullable(IDLType.createType(Type.VEC)), value, name);
-				}
 
-				typeMap.put(Label.createNamedLabel((String) name), itemIdlValue.getIDLType());
-				valueMap.put(Label.createNamedLabel((String) name), itemIdlValue.getValue());
+				Label label;
+				if (qName.equals(itemQName)) {
+					// handle unnamed RECORDS and VARIANTS
+					int i = 0;
+					
+					for(Element unnamedNode : items)
+					{
+						expectedItemIdlType = null;
+						long id = i;
+						
+						String idAttribute = null;
+						if (this.isQualified) {
+							if (unnamedNode.hasAttributeNS(CANDID_NS, CANDID_ID_ATTR_NAME))
+								idAttribute = unnamedNode.getAttributeNS(CANDID_NS, CANDID_ID_ATTR_NAME);
+						} else {
+							if (unnamedNode.hasAttribute(CANDID_ID_ATTR_NAME))
+								idAttribute = unnamedNode.getAttribute(CANDID_ID_ATTR_NAME);
+						}
+						
+						if(idAttribute != null)
+						{
+							try
+							{
+								id = Long.parseLong(idAttribute);
+								
+								if(id == i)
+									i++;
+							}catch(Exception e)
+							{
+								
+							}
+						}else
+							i++;
+						
+						label = Label.createUnnamedLabel(id);
+						
+						if (expectedIdlType.isPresent() && expectedTypeMap != null) {
+
+							expectedItemIdlType = expectedTypeMap.get(label);
+
+							itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), unnamedNode);
+
+						} else
+							itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), unnamedNode);
+						
+						typeMap.put(label, itemIdlValue.getIDLType());
+						valueMap.put(label, itemIdlValue.getValue());
+					}
+				} else {
+					// handle named RECORDS and VARIANTS
+					Element firstNode = items.iterator().next();
+
+					if (this.isQualified) {
+						if (firstNode.hasAttributeNS(CANDID_NS, CANDID_NAME_ATTR_NAME))
+							name = firstNode.getAttributeNS(CANDID_NS, CANDID_NAME_ATTR_NAME);
+					} else {
+						if (value.hasAttribute(CANDID_NAME_ATTR_NAME))
+							name = value.getAttribute(CANDID_NAME_ATTR_NAME);
+					}
+
+					label = Label.createNamedLabel((String) name);
+
+					if (expectedIdlType.isPresent() && expectedTypeMap != null) {
+
+						expectedItemIdlType = expectedTypeMap.get(label);
+
+						if (expectedItemIdlType != null && expectedItemIdlType.getType() == Type.VEC)
+							itemIdlValue = this.getArrayIDLValue(Optional.ofNullable(expectedItemIdlType), value, name);
+						else if (items.size() == 1)
+							itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), firstNode);
+						else
+							throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+									"Invalid number of " + name + " elements");
+					} else {
+						if (items.size() == 1)
+							itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedItemIdlType), firstNode);
+						else
+							itemIdlValue = this.getArrayIDLValue(Optional.ofNullable(IDLType.createType(Type.VEC)),
+									value, name);
+					}
+					
+					typeMap.put(label, itemIdlValue.getIDLType());
+					valueMap.put(label, itemIdlValue.getValue());
+				}
 			}
 
-			IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+			IDLType idlType = IDLType.createType(type, typeMap);
 			IDLValue idlValue = IDLValue.create(valueMap, idlType);
 
 			return idlValue;
+		}
+
+		if (type == Type.OPT) {
+			if (expectedIdlType.isPresent()) {
+				if (!value.hasChildNodes())
+					return IDLValue.create(Optional.empty(), expectedIdlType.get());
+
+				IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(expectedIdlType.get().getInnerType()),
+						value);
+
+				return IDLValue.create(Optional.ofNullable(itemIdlValue.getValue()), expectedIdlType.get());
+			} else {
+				if (!value.hasChildNodes())
+					return IDLValue.create(Optional.empty(), IDLType.createType(Type.OPT));
+
+				IDLValue itemIdlValue = this.getIDLValue(Optional.ofNullable(IDLType.createType(Type.OPT)), value);
+
+				return IDLValue.create(Optional.ofNullable(itemIdlValue.getValue()), IDLType.createType(Type.OPT));
+			}
 		}
 
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Cannot convert type " + type.name());
 
 	}
 
-	MultiMap<String, Element> getFlatElements(Element element) {
-		
-		MultiMap<String, Element> elementMap = new MultiMap<String, Element>();
+	MultiMap<QName, Element> getFlatElements(Element element) {
 
-		//Map<String, Element> elementMap = new TreeMap<String, Element>();
+		MultiMap<QName, Element> elementMap = new MultiMap<QName, Element>();
+
 		Node childNode = element.getFirstChild();
 		if (childNode != null) {
 			if (childNode.getNodeType() == Node.ELEMENT_NODE) {
 				Element childElement = (Element) childNode;
 
-				if(!this.isQualified || this.namespace.get() == childElement.getNamespaceURI())		
-					elementMap.put(childElement.getLocalName(), childElement);
+				if (!this.isQualified || this.namespace.get() == childElement.getNamespaceURI()
+						|| CANDID_NS == childElement.getNamespaceURI())
+					elementMap.put(new QName(childElement.getNamespaceURI(), childElement.getLocalName()),
+							childElement);
 			}
 			while (childNode.getNextSibling() != null) {
 				childNode = childNode.getNextSibling();
 				if (childNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element childElement = (Element) childNode;
 
-					if(!this.isQualified || this.namespace.get() == childElement.getNamespaceURI())	
-						elementMap.put(childElement.getLocalName(), childElement);
+					if (!this.isQualified || this.namespace.get() == childElement.getNamespaceURI()
+							|| CANDID_NS == childElement.getNamespaceURI())
+						elementMap.put(new QName(childElement.getNamespaceURI(), childElement.getLocalName()),
+								childElement);
 				}
 			}
 		}
@@ -416,7 +480,7 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 			if (childNode.getNodeType() == Node.ELEMENT_NODE) {
 				Element childElement = (Element) childNode;
 
-				if(!this.isQualified || this.namespace.get() == childElement.getNamespaceURI())	
+				if (!this.isQualified || this.namespace.get() == childElement.getNamespaceURI() || CANDID_NS == childElement.getNamespaceURI())
 					if (childElement.getLocalName() == localName)
 						elementSet.add(childElement);
 			}
@@ -425,7 +489,7 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 				if (childNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element childElement = (Element) childNode;
 
-					if(!this.isQualified || this.namespace.get() == childElement.getNamespaceURI())	
+					if (!this.isQualified || this.namespace.get() == childElement.getNamespaceURI() || CANDID_NS == childElement.getNamespaceURI())
 						if (childElement.getLocalName() == localName)
 							elementSet.add(childElement);
 				}
@@ -451,59 +515,11 @@ public class DOMSerializer extends DOMSerDeserBase implements ObjectSerializer {
 	}
 
 	boolean hasTextNode(Element element) {
-		
-		if(this.getTextNode(element) != null)
+
+		if (this.getTextNode(element) != null)
 			return true;
 		else
 			return false;
 	}
-	
-	class MultiMap<K, V>
-	{
-	    private Map<K, Collection<V>> map = new TreeMap<>();
-	 
-	    public void put(K key, V value)
-	    {
-	        if (map.get(key) == null) {
-	            map.put(key, new ArrayList<V>());
-	        }
-	 
-	        map.get(key).add(value);
-	    }
-	 
-	 
-	    public Collection<V> get(Object key) {
-	        return map.get(key);
-	    }
-	 
-	    public Set<K> keySet() {
-	        return map.keySet();
-	    }
-	 
-	    public Set<Map.Entry<K, Collection<V>>> entrySet() {
-	        return map.entrySet();
-	    }
-	 
-	    public Collection<Collection<V>> values() {
-	        return map.values();
-	    }
-	 
-	    public boolean containsKey(Object key) {
-	        return map.containsKey(key);
-	    }
-	 
-	    public int size()
-	    {
-	        int size = 0;
-	        for (Collection<V> value: map.values()) {
-	            size += value.size();
-	        }
-	        return size;
-	    }
-	 
-	    public boolean isEmpty() {
-	        return map.isEmpty();
-	    }
-	 
-	}
+
 }

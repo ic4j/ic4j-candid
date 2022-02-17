@@ -36,7 +36,7 @@ import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 import org.ic4j.types.Principal;
 
-public class JDBCSerializer implements ObjectSerializer {
+public final class JDBCSerializer implements ObjectSerializer {
 	Optional<IDLType> idlType = Optional.empty();
 	boolean isArray = true;
 

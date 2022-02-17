@@ -31,18 +31,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public final class PojoTest extends CandidAssert {
 
 	static {
-		LOG = LoggerFactory.getLogger(CandidTest.class);
+		LOG = LoggerFactory.getLogger(PojoTest.class);
 	}
 
 	@Test
-	public void test() {		
-		Label label = Label.createNamedLabel("zipcode");
-		
-		long id = label.getId();
-		
-		int hash = label.hashCode();
-	
-		
+	public void test() {			
 		// Loan Offer Request		
 		
 		LoanOfferRequest loanRequest = new LoanOfferRequest();

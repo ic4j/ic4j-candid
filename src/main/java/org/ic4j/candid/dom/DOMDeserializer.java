@@ -37,7 +37,7 @@ import org.w3c.dom.Node;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.ObjectDeserializer;
 
-public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializer {
+public final class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializer {
 	String localName;
 
 	boolean setAttributes = false;
@@ -232,7 +232,8 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 			type = expectedIdlType.get().getType();
 			if (idlType != null)
 				idlType = expectedIdlType.get();
-		}
+		}else if(idlType != null)
+			type = idlType.getType();
 
 		// handle primitives
 		if (type.isPrimitive())
@@ -252,7 +253,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 			if (innerIdlType.getType() == Type.INT8 || innerIdlType.getType() == Type.NAT8)
 				parentElement = this.getByteArrayValue(parentElement, innerIdlType, value);
 			else 
-				parentElement = this.getArrayValue(parentElement, this.arrayItem, innerIdlType, expectedIdlType, value);
+				parentElement = this.getArrayValue(parentElement,CANDID_NS, this.arrayItem, innerIdlType, expectedIdlType, value);
 		}
 		// handle OPT
 		if (type == Type.OPT) {
@@ -266,10 +267,11 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 
 				parentElement = this.getValue(parentElement, idlType.getInnerType(),
 						Optional.ofNullable(expectedInnerIdlType), optionalValue.get());
-			}
+			}			
 		}
 
 		// handle object
+		
 		if (type == Type.RECORD || type == Type.VARIANT) {
 			Map<Label, Object> valueMap = (Map<Label, Object>) value;
 
@@ -288,6 +290,11 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 				expectedLabels.put(entry.getId(), entry);
 
 			for (Label label : labels) {
+				boolean isNamed = false;
+				
+				if(label.getType() == Label.LabelType.NAMED)
+					isNamed = true;
+				
 				String fieldName;
 
 				IDLType itemIdlType = typeMap.get(label);
@@ -298,26 +305,68 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 					expectedItemIdlType = expectedTypeMap.get(label);
 
 					Label expectedLabel = expectedLabels.get(label.getId());
+					
+					if(expectedLabel.getType() == Label.LabelType.NAMED)
+						isNamed = true;
 
-					fieldName = expectedLabel.toString();
+					fieldName = expectedLabel.getValue().toString();
 				} else
-					fieldName = label.toString();
+					fieldName = label.getValue().toString();
+				
+				String id = fieldName;
+				String namespace = this.namespace.get();
+				if(!isNamed)
+				{
+					fieldName = this.arrayItem;
+					namespace = CANDID_NS;
+				}
 
 				Element itemElement;
 				if (itemIdlType.getType() == Type.VEC)
-					itemElement = this.getArrayValue(parentElement, fieldName, itemIdlType,
+					itemElement = this.getArrayValue(parentElement,namespace, fieldName, itemIdlType,
 							Optional.ofNullable(expectedItemIdlType), valueMap.get(label));
 				else {
 					if (this.isQualified)
-						itemElement = this.document.get().createElementNS(this.namespace.get(), fieldName);
+						itemElement = this.document.get().createElementNS(namespace, fieldName);
 					else
 						itemElement = this.document.get().createElement(fieldName);
 
 					itemElement = this.getValue(itemElement, itemIdlType, Optional.ofNullable(expectedItemIdlType),
 							valueMap.get(label));
 				}
-
+				
+				if (this.setAttributes) {
+					if (this.isQualified)
+					{
+						itemElement.setAttributeNS(CANDID_NS, CANDID_PREFIX + ":" + CANDID_TYPE_ATTR_NAME,
+								itemIdlType.getType().toString());
+						
+						if(isNamed)
+							itemElement.setAttributeNS(CANDID_NS, CANDID_PREFIX + ":" + CANDID_NAME_ATTR_NAME,
+									fieldName);	
+						else
+							itemElement.setAttributeNS(CANDID_NS, CANDID_PREFIX + ":" + CANDID_ID_ATTR_NAME,
+									id);							
+					}
+					else
+					{
+						itemElement.setAttribute(CANDID_TYPE_ATTR_NAME, itemIdlType.getType().toString());
+						
+						if(isNamed)
+							itemElement.setAttribute(CANDID_NAME_ATTR_NAME, fieldName);	
+						else
+							itemElement.setAttribute(CANDID_ID_ATTR_NAME, id);
+					}
+				}
 				parentElement.appendChild(itemElement);
+			}
+			
+			if (this.setAttributes) {
+				if (this.isQualified)
+					parentElement.setAttributeNS(CANDID_NS, CANDID_PREFIX + ":" + CANDID_TYPE_ATTR_NAME,
+							type.toString());					
+				else
+					parentElement.setAttribute(CANDID_TYPE_ATTR_NAME, type.toString());
 
 			}
 
@@ -326,7 +375,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 		return parentElement;
 	}
 
-	Element getArrayValue(Element parentElement, String localName, IDLType idlType, Optional<IDLType> expectedIdlType,
+	Element getArrayValue(Element parentElement, String namespace, String localName, IDLType idlType, Optional<IDLType> expectedIdlType,
 			Object value) {
 		IDLType expectedInnerIDLType = null;
 		IDLType innerIdlType = idlType.getInnerType();
@@ -341,7 +390,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 			Element arrayElement;
 
 			if (this.isQualified)
-				arrayElement = this.document.get().createElementNS(this.namespace.get(), localName);
+				arrayElement = this.document.get().createElementNS(namespace, localName);
 			else
 				arrayElement = this.document.get().createElement(localName);
 
@@ -357,7 +406,7 @@ public class DOMDeserializer extends DOMSerDeserBase implements ObjectDeserializ
 				Element arrayElement;
 
 				if (this.isQualified)
-					arrayElement = this.document.get().createElementNS(this.namespace.get(), localName);
+					arrayElement = this.document.get().createElementNS(namespace, localName);
 				else
 					arrayElement = this.document.get().createElement(localName);
 
