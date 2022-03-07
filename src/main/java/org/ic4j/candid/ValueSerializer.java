@@ -76,7 +76,7 @@ public final class ValueSerializer implements Serializer{
 	    output.put(value);
 	    
 		this.value = ArrayUtils.addAll(this.value, output.array());
-    }
+    }	
 	
 	public final void serializeNat16(Short value)
     { 
@@ -254,7 +254,26 @@ public final class ValueSerializer implements Serializer{
 		
 	}
 	
+	public final void serializeBinary(byte[] value, IDLType idlType)
+    {   
+		byte[] leb128 = Leb128.writeUnsigned(value.length);
+    	
+    	this.value = ArrayUtils.addAll(this.value,leb128);
+    	
+		if(value == null || value.length == 0)
+			return;
+		
+		ByteBuffer output = ByteBuffer.allocate(Byte.BYTES*value.length);
+		output.order(ByteOrder.LITTLE_ENDIAN);
+	    output.put(value);
+	    
+		this.value = ArrayUtils.addAll(this.value, output.array());
+    }
 	
+	public final void serializeBinary(Byte[] value, IDLType idlType)
+    {   		
+		this.serializeBinary(ArrayUtils.toPrimitive(value), idlType);
+    }
 
 	@Override
 	public void serializeRecord(Object value, IDLType idlType) {

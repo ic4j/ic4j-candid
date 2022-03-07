@@ -22,7 +22,7 @@ import java.util.Optional;
 
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
-
+import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.Deserialize;
 import org.ic4j.candid.Deserializer;
 import org.ic4j.candid.IDLUtils;
@@ -159,7 +159,12 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeOpt((Optional) value.get(), this.idlType);
 			break;
 		case VEC:
-			serializer.serializeVec((Object[])value.get(), this.idlType);
+			if(value.isPresent() && value.get() instanceof byte[])
+				serializer.serializeBinary((byte[])value.get(), this.idlType);	
+			else if(value.isPresent() && value.get() instanceof Byte[])
+				serializer.serializeBinary((Byte[])value.get(), this.idlType);			
+			else
+				serializer.serializeVec((Object[])value.get(), this.idlType);
 			break;
 		case RECORD:
 			serializer.serializeRecord(value.get(), this.idlType);

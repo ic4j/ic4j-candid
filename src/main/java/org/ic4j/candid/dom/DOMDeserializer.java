@@ -321,6 +321,10 @@ public final class DOMDeserializer extends DOMSerDeserBase implements ObjectDese
 					namespace = CANDID_NS;
 				}
 
+				if(itemIdlType == null)
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+							"Cannot identify item IDL type for field name " + fieldName);
+					
 				Element itemElement;
 				if (itemIdlType.getType() == Type.VEC)
 					itemElement = this.getArrayValue(parentElement,namespace, fieldName, itemIdlType,

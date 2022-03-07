@@ -67,6 +67,10 @@ public interface Serializer {
 	
 	public <T> void serializeVec(T[] value, IDLType idlType);	
 	
+	public void serializeBinary(byte[] value,IDLType idlType);
+	
+	public void serializeBinary(Byte[] value,IDLType idlType);
+	
 	public void serializeRecord(Object value,IDLType idlType);
 	
 	public void serializeVariant(Object value, IDLType idlType);

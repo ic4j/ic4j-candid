@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.parser.IDLArgs;
 import org.ic4j.candid.parser.IDLType;
@@ -518,6 +519,59 @@ public final class CandidTest extends CandidAssert{
 
 		LOG.info(outArgs.getArgs().get(4).getValue().toString());
 		Assertions.assertEquals(floatValue, outArgs.getArgs().get(4).getValue());
+		
+		// test Binary argument
+		try {
+			args = new ArrayList<IDLValue>();
+
+			byte[] binaryValue = getBinary(BINARY_IMAGE_FILE, "png");			
+
+			args.add(IDLValue.create(binaryValue, IDLType.createType(org.ic4j.candid.types.Type.VEC, IDLType.createType(org.ic4j.candid.types.Type.NAT8))));
+
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+			
+			outArgs = IDLArgs.fromBytes(buf);
+
+			Byte[] binaryResponse = (Byte[]) outArgs.getArgs().get(0).getValue();
+
+			LOG.info(Integer.toString(binaryResponse.length));
+			Assertions.assertTrue(binaryValue.length == binaryResponse.length);
+
+			Assertions.assertArrayEquals(ArrayUtils.toObject(binaryValue), binaryResponse);
+
+		} catch (Throwable ex) {
+			LOG.debug(ex.getLocalizedMessage(), ex);
+			Assertions.fail(ex.getLocalizedMessage());
+		}
+		
+		// test Binary argument
+		try {
+			args = new ArrayList<IDLValue>();
+
+			Byte[] binaryValue = ArrayUtils.toObject(getBinary(BINARY_IMAGE_FILE, "png"));	
+
+			args.add(IDLValue.create(binaryValue, IDLType.createType(org.ic4j.candid.types.Type.VEC, IDLType.createType(org.ic4j.candid.types.Type.NAT8))));
+
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+			
+			outArgs = IDLArgs.fromBytes(buf);
+
+			Byte[] binaryResponse = (Byte[]) outArgs.getArgs().get(0).getValue();
+
+			LOG.info(Integer.toString(binaryResponse.length));
+			Assertions.assertTrue(binaryValue.length == binaryResponse.length);
+
+			Assertions.assertArrayEquals(binaryValue, binaryResponse);
+
+		} catch (Throwable ex) {
+			LOG.debug(ex.getLocalizedMessage(), ex);
+			Assertions.fail(ex.getLocalizedMessage());
+		}
+		
 	}
 	
 }

@@ -30,6 +30,7 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
+import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectSerializer;
 
@@ -61,23 +62,38 @@ public final class PojoSerializer implements ObjectSerializer {
 		{
 			List<Map<Label, Object>> arrayValue = new ArrayList();
 			
-			Object[] array = (Object[]) value;
 			
 			IDLType idlType = IDLType.createType(Type.VEC);
-			
-			for(int i = 0; i < array.length; i++)
+
+			if(value instanceof Byte[])
 			{
-				Object item = array[i];
 				
-				IDLValue itemIDLValue = this.getIDLValue(item, Type.VEC);
-				
-				arrayValue.add(itemIDLValue.getValue());
-				
-				idlType = IDLType.createType(Type.VEC, itemIDLValue.getIDLType());
+				idlType = IDLType.createType(Type.VEC, Type.NAT8);
+				idlValue = IDLValue.create(value, idlType);
 			}
-			
-			
-			idlValue = IDLValue.create(arrayValue.toArray(), idlType);
+			else if (value instanceof byte[])
+			{
+				idlType = IDLType.createType(Type.VEC, Type.NAT8);
+				idlValue = IDLValue.create(ArrayUtils.toObject((byte[])value), idlType);				
+			}
+			else
+			{
+				Object[] array = (Object[]) value;
+				
+				for(int i = 0; i < array.length; i++)
+				{
+					Object item = array[i];
+					
+					IDLValue itemIDLValue = this.getIDLValue(item, Type.VEC);
+					
+					arrayValue.add(itemIDLValue.getValue());
+					
+					idlType = IDLType.createType(Type.VEC, itemIDLValue.getIDLType());
+				}
+				
+				
+				idlValue = IDLValue.create(arrayValue.toArray(), idlType);
+			}
 		}
 		else
 		{			

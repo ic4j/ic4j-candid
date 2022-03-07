@@ -26,6 +26,7 @@ public final class DOMTest extends CandidAssert {
 	static final String SIMPLE_NODE_FILE = "SimpleNode.xml";
 	static final String SIMPLE_ARRAY_NODE_FILE = "ComplexNode.xml";
 	static final String TRADE_ARRAY_NODE_FILE = "TradeArrayNode.xml";
+	static final String LOAN_APPLICATION_NODE_FILE = "LoanApplication.xml";
 	
 	// Instantiate the Factory
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -41,6 +42,7 @@ public final class DOMTest extends CandidAssert {
 
 		this.testDom(SIMPLE_NODE_FILE, null, false);
 		this.testDom(SIMPLE_ARRAY_NODE_FILE, null,false);
+		this.testDom(LOAN_APPLICATION_NODE_FILE, null,true);
 		this.testDom(TRADE_ARRAY_NODE_FILE, null,true);
 	}
 

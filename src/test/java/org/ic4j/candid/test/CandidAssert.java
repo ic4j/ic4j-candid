@@ -1,7 +1,12 @@
 package org.ic4j.candid.test;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -16,6 +21,8 @@ import org.slf4j.Logger;
 
 abstract class CandidAssert {
 	static Logger LOG;
+	
+	protected static String BINARY_IMAGE_FILE = "dfinity.png";
 
 	static byte[] getBytes(String input) throws DecoderException {
 		if (input == null)
@@ -41,6 +48,18 @@ abstract class CandidAssert {
 			return getBytes(input);
 		else
 			return ArrayUtils.addAll(getBytes(input), value.getBytes());
+	}
+	
+	static byte[] getBinary(String fileName, String type) throws Exception{
+		InputStream binaryInputStream = CandidAssert.class.getClassLoader().getResourceAsStream(fileName);
+
+		BufferedImage bImage = ImageIO.read(binaryInputStream);
+		
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ImageIO.write(bImage, type, bos );
+		byte [] data = bos.toByteArray();
+		      
+		return data;
 	}
 
 	static void assertBytes(String input, byte[] value) {

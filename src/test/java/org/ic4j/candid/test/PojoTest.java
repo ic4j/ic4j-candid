@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.ByteUtils;
 import org.ic4j.candid.dom.DOMDeserializer;
 import org.ic4j.candid.dom.DOMSerializer;
@@ -287,5 +288,30 @@ public final class PojoTest extends CandidAssert {
 				.getValue(new PojoDeserializer(), ComplexArrayPojo.class);
 
 		Assertions.assertEquals(complexArrayPojoValue, complexPojoArrayResult);
+		
+		try {
+			BinaryPojo binaryValue = new BinaryPojo();
+			binaryValue.primitive = getBinary(BINARY_IMAGE_FILE, "png");	
+			binaryValue.object = ArrayUtils.toObject(getBinary(BINARY_IMAGE_FILE, "png"));
+			
+			idlValue = IDLValue.create(binaryValue, new PojoSerializer());
+
+			args = new ArrayList<IDLValue>();
+			args.add(idlValue);
+
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+			
+			BinaryPojo binaryResult = IDLArgs.fromBytes(buf).getArgs().get(0)
+					.getValue(new PojoDeserializer(), BinaryPojo.class);
+			
+			Assertions.assertEquals(binaryValue, binaryResult);
+			
+		}catch(Exception e)
+		{
+			LOG.debug(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());			
+		}
 	}
 }

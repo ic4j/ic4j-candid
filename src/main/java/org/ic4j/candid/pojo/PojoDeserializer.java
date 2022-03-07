@@ -34,6 +34,7 @@ import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 import org.ic4j.types.Principal;
+import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
@@ -82,12 +83,20 @@ public final class PojoDeserializer implements ObjectDeserializer {
 				return idlValue.getValue();
 			else if (idlValue.getValue().getClass().isArray()) {
 				Object[] array = idlValue.getValue();
+				
+				if(clazz.isAssignableFrom(byte[].class))
+					return (T) ArrayUtils.toPrimitive((Byte[])array);
+				
+				if(clazz.isAssignableFrom(Byte[].class))
+					return (T) (Byte[])array;				
 
 				Object[] result = (Object[]) Array.newInstance(clazz.getComponentType(), array.length);
 
 				for (int i = 0; i < array.length; i++) {
 					result[i] = this.getValue(array[i], clazz.getComponentType());
 				}
+				
+
 
 				return (T) result;
 			}
@@ -117,7 +126,7 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			for (Object item : array) {
 				arrayValue.add((T) this.getValue(item, clazz.getComponentType()));
 			}
-
+			
 			return (T) arrayValue.toArray();
 		}
 
@@ -195,7 +204,13 @@ public final class PojoDeserializer implements ObjectDeserializer {
 					if(item != null)
 					{
 						if(item.getClass().isArray())
+						{	
 							item = IDLUtils.toArray(typeClass, (Object[]) item);
+							
+							// handle binary
+							if(typeClass.isAssignableFrom(byte[].class))
+								item = ArrayUtils.toPrimitive((Byte[])item);
+						}
 					
 						if(item.getClass().isAssignableFrom(BigInteger.class) && !typeClass.isAssignableFrom(BigInteger.class))
 							item = IDLUtils.bigIntToObject((BigInteger) item, typeClass);

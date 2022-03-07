@@ -241,7 +241,7 @@ public final class JacksonSerializer implements ObjectSerializer {
 					JsonNode item = arrayNode.get(i);
 					IDLType expectedItemIdlType;
 					
-					if (expectedIdlType.isPresent() && expectedTypeMap != null)
+					if (expectedTypeMap != null && expectedIdlType.isPresent())
 						expectedItemIdlType = expectedTypeMap.get(Label.createUnnamedLabel((long)i));
 					else
 						expectedItemIdlType = IDLType.createType(this.getType(item));
@@ -267,7 +267,7 @@ public final class JacksonSerializer implements ObjectSerializer {
 	
 					IDLType expectedItemIdlType;
 	
-					if (expectedIdlType.isPresent() && expectedTypeMap != null)
+					if (expectedTypeMap != null && expectedIdlType.isPresent())
 						expectedItemIdlType = expectedTypeMap.get(Label.createNamedLabel(name));
 					else
 						expectedItemIdlType = IDLType.createType(this.getType(item));

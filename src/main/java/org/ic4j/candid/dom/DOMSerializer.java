@@ -70,6 +70,8 @@ public final class DOMSerializer extends DOMSerDeserBase implements ObjectSerial
 
 		if (this.namespace.isPresent())
 			this.isQualified = true;
+		else
+			this.isQualified = false;
 
 		return this.getIDLValue(this.idlType, (Element) value);
 	}
