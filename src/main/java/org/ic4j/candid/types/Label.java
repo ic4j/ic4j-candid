@@ -63,12 +63,12 @@ public class Label implements Comparable<Label> {
 		if (other == null)
 			return false;
 
-		if (other instanceof Label)
-			return (this.getId() == ((Label) other).getId());
+		if (other instanceof Label)			
+			return (this.getId().equals(((Label) other).getId()));
 		else if (other instanceof Integer)
-			return (this.getId() == other);
+			return (this.getId().equals(other) );
 		else if (other instanceof String)
-			return (this.getId() == IDLUtils.idlHash((String) other));
+			return (this.getId().equals(IDLUtils.idlHash((String) other)));
 		else
 			return false;
 	}

@@ -142,11 +142,17 @@ public final class PojoSerializer implements ObjectSerializer {
 			if(field.isAnnotationPresent(Ignore.class))
 				continue;
 			
+			if(field.isEnumConstant())
+				continue;
+			
 			field.setAccessible(true);
 			
 			String name = field.getName();
 			if(name.startsWith("this$"))
 					continue;
+			
+			if(name.startsWith("ENUM$VALUES"))
+				continue;			
 			
 			Class typeClass = field.getType();
 			
@@ -263,6 +269,24 @@ public final class PojoSerializer implements ObjectSerializer {
 		
 		if(parentType == null || parentType != Type.VARIANT)
 			parentType = Type.RECORD;
+		
+		
+		// handle Enum to VARIANT
+		if(Enum.class.isAssignableFrom(valueClass))
+		{
+			Enum enumValue = (Enum)value;
+			
+			String name = enumValue.name();
+			
+			Label enumLabel = Label.createNamedLabel(name);
+			// if there is no Enum value, set it to null
+			if(!valueMap.containsKey(enumLabel))
+			{
+				typeMap.put(enumLabel, IDLType.createType(Type.NULL));
+				valueMap.put(enumLabel, null);
+			}
+				
+		}
 		
 		IDLType idlType = IDLType.createType(parentType, typeMap);
 		IDLValue idlValue = IDLValue.create(valueMap, idlType);
