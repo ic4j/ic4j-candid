@@ -149,7 +149,10 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			String name = field.getName();
 			if(name.startsWith("this$"))
-					continue;
+				continue;
+			
+			if(name.startsWith("$VALUES"))
+				continue;			
 			
 			if(name.startsWith("ENUM$VALUES"))
 				continue;			
@@ -316,9 +319,18 @@ public final class PojoSerializer implements ObjectSerializer {
 			if(field.isAnnotationPresent(Ignore.class))
 				continue;
 			
+			if(field.isEnumConstant())
+				continue;			
+			
 			String name = field.getName();
 			if(name.startsWith("this$"))
 				continue;
+			
+			if(name.startsWith("$VALUES"))
+				continue;			
+			
+			if(name.startsWith("ENUM$VALUES"))
+				continue;			
 			
 			Class typeClass = field.getType();	
 			

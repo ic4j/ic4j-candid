@@ -194,6 +194,9 @@ public final class PojoDeserializer implements ObjectDeserializer {
 				String name = field.getName();
 				if (name.startsWith("this$"))
 					continue;
+
+				if(name.startsWith("$VALUES"))
+					continue;
 				
 				if(name.startsWith("ENUM$VALUES"))
 					continue;				

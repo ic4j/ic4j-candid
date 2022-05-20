@@ -1,5 +1,6 @@
 # dfinity-agent
-Java Candid for The Internet Computer (IC4J) is a set of native Java libraries to manage the Internet Computer Candid types.
+Java Candid for The Internet Computer (IC4J) is a set of native Java libraries to manage the Internet Computer Candid types. Full documentation <a href=" https://docs.ic4j.com">
+here</a>
 
 <a href="https://dfinity.org/">
 https://dfinity.org/
@@ -155,20 +156,20 @@ byte[] buf = idlArgs.toBytes();
 
 To add Java IC4J Candid library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.6/jar">
-https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.6/jar
+<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.11/jar">
+https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.11/jar
 </a>
 
 ```
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-candid</artifactId>
-  <version>0.6.6</version>
+  <version>0.6.11</version>
 </dependency>
 ```
 
 ```
-implementation 'org.ic4j:ic4j-candid:0.6.6'
+implementation 'org.ic4j:ic4j-candid:0.6.11'
 ```
 
 ## Dependencies
