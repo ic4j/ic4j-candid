@@ -156,20 +156,20 @@ byte[] buf = idlArgs.toBytes();
 
 To add Java IC4J Candid library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.11/jar">
-https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.11/jar
+<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.12/jar">
+https://search.maven.org/artifact/ic4j/ic4j-candid/0.6.12/jar
 </a>
 
 ```
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-candid</artifactId>
-  <version>0.6.11</version>
+  <version>0.6.12</version>
 </dependency>
 ```
 
 ```
-implementation 'org.ic4j:ic4j-candid:0.6.11'
+implementation 'org.ic4j:ic4j-candid:0.6.12'
 ```
 
 ## Dependencies
