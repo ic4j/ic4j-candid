@@ -43,6 +43,12 @@ public class PrincipalTest {
 			principal = Principal.fromString("22w4c-cyaaa-aaaab-qacka-cai");
 
 			Assertions.assertEquals(principal.toString(), "22w4c-cyaaa-aaaab-qacka-cai");
+			
+			principal = Principal.fromString("aabzk-v6a3g-5u6a6-vcoqh-effzk-jb676-f47sd-bkqgg-afgmm-7wlka-hqe");
+
+			Assertions.assertEquals(principal.toString(), "aabzk-v6a3g-5u6a6-vcoqh-effzk-jb676-f47sd-bkqgg-afgmm-7wlka-hqe");			
+			
+			
 
 		} catch (PrincipalError e) {
 			LOG.error(e.getLocalizedMessage(), e);

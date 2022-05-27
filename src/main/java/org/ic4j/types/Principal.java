@@ -129,6 +129,7 @@ public final class Principal implements Cloneable {
 			throw PrincipalError.create(PrincipalError.PrincipalErrorCode.EXTERNAL_ERROR,"Value is empty");			
 	}
 
+	/*
 	public String toString() {
 		if (value.isPresent()) {
 			CRC32 hasher = new CRC32();
@@ -154,6 +155,25 @@ public final class Principal implements Cloneable {
 		} else
 			return new String();
 	}
+	*/
+	
+    public String toString() {
+        if (value.isPresent()) {
+            final byte[] valueBytes = value.get();
+            final byte[] checksum = toChecksumBytes(valueBytes);
+            final byte[] bytes = concatByteArrays(checksum, valueBytes);
+
+            String output = codec.encodeAsString(bytes);
+            output = makeAsciiLowerCase(output);
+
+            // remove padding
+            output = StringUtils.stripEnd(output, "=");
+            output = output.replaceAll("(.{5})", "$1-");
+            return output;
+        } else {
+            return "";
+        }
+    }	
 	
 	public Principal clone()
 	{
@@ -232,6 +252,26 @@ public final class Principal implements Cloneable {
 		} else
 			return new Principal(PrincipalInner.MANAGEMENT_CANISTER);
 	}
+	
+    private byte[] toChecksumBytes(byte[] valueBytes) {
+        final CRC32 hasher = new CRC32();
+        hasher.update(valueBytes);
+
+        final long hasherValue = hasher.getValue();
+        if (hasherValue > 0) {
+            return to4Bytes((int) hasherValue);
+        }
+        return new byte[]{0, 0, 0, 0};
+    }
+
+    private byte[] to4Bytes(int value) {
+        final byte[] bytes = new byte[4];
+        bytes[0] = (byte) ((value >>> 24) & 0xFF);
+        bytes[1] = (byte) ((value >>> 16) & 0xFF);
+        bytes[2] = (byte) ((value >>> 8) & 0xFF);
+        bytes[3] = (byte) ((value) & 0xFF);
+        return bytes;
+    }	
 
 	enum PrincipalInner {
 		MANAGEMENT_CANISTER, OPAQUE_ID, SELF_AUTHENTICATING, DERIVED_ID, ANONYMOUS, UNASSIGNED;
