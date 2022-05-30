@@ -19,7 +19,6 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.pojo.PojoDeserializer;
 import org.ic4j.candid.pojo.PojoSerializer;
-import org.ic4j.candid.types.Label;
 import org.ic4j.types.Principal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -288,6 +287,32 @@ public final class PojoTest extends CandidAssert {
 				.getValue(new PojoDeserializer(), ComplexArrayPojo.class);
 
 		Assertions.assertEquals(complexArrayPojoValue, complexPojoArrayResult);
+		
+		ComplexPojo complexPojoValue2 = new ComplexPojo();
+		complexPojoValue2.bar = new Boolean(true);
+		complexPojoValue2.foo = BigInteger.valueOf(44);	
+		
+		complexPojoValue2.pojo = pojoValue;
+		
+		ComplexPojo[] complexPojoArrayValue = {complexPojoValue,complexPojoValue2};
+		
+		idlValue = IDLValue.create(complexPojoArrayValue, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		IDLType[] idlTypesArray = {idlValue.getIDLType()};
+		
+		outArgs = IDLArgs.fromBytes(buf,idlTypesArray);
+		
+		ComplexPojo[] complexPojoArrayValueResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), ComplexPojo[].class);
+		
+		Assertions.assertArrayEquals(complexPojoArrayValue, complexPojoArrayValueResult);
 		
 		try {
 			BinaryPojo binaryValue = new BinaryPojo();
