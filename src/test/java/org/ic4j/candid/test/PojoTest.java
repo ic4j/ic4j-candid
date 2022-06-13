@@ -314,6 +314,26 @@ public final class PojoTest extends CandidAssert {
 		
 		Assertions.assertArrayEquals(complexPojoArrayValue, complexPojoArrayValueResult);
 		
+		ComplexPojo[] emptyComplexPojoArrayValue = {};
+		
+		idlValue = IDLValue.create(emptyComplexPojoArrayValue, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		IDLType[] idlTypesEmptyArray = {idlValue.getIDLType()};
+		
+		outArgs = IDLArgs.fromBytes(buf,idlTypesEmptyArray);
+		
+		complexPojoArrayValueResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), ComplexPojo[].class);
+		
+		Assertions.assertArrayEquals(emptyComplexPojoArrayValue, complexPojoArrayValueResult);		
+		
 		try {
 			BinaryPojo binaryValue = new BinaryPojo();
 			binaryValue.primitive = getBinary(BINARY_IMAGE_FILE, "png");	

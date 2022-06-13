@@ -185,8 +185,8 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			for (Field field : fields) {
 				if (field.isAnnotationPresent(Ignore.class))
 					continue;
-				
-				if(field.isEnumConstant())
+
+				if (field.isEnumConstant())
 					continue;
 
 				field.setAccessible(true);
@@ -195,11 +195,11 @@ public final class PojoDeserializer implements ObjectDeserializer {
 				if (name.startsWith("this$"))
 					continue;
 
-				if(name.startsWith("$VALUES"))
+				if (name.startsWith("$VALUES"))
 					continue;
-				
-				if(name.startsWith("ENUM$VALUES"))
-					continue;				
+
+				if (name.startsWith("ENUM$VALUES"))
+					continue;
 
 				Class typeClass = field.getType();
 
@@ -221,20 +221,21 @@ public final class PojoDeserializer implements ObjectDeserializer {
 				try {
 					// convert to proper type
 					if (item != null) {
+
 						if (item.getClass().isArray()) {
 							item = IDLUtils.toArray(typeClass, (Object[]) item);
-
 							// handle binary
 							if (typeClass.isAssignableFrom(byte[].class))
 								item = ArrayUtils.toPrimitive((Byte[]) item);
-						}
 
-						if (item.getClass().isAssignableFrom(BigInteger.class)
-								&& !typeClass.isAssignableFrom(BigInteger.class))
-							item = IDLUtils.bigIntToObject((BigInteger) item, typeClass);
-						if (item.getClass().isAssignableFrom(Principal.class)
-								&& !typeClass.isAssignableFrom(Principal.class))
-							item = IDLUtils.principalToObject((Principal) item, typeClass);
+						} else {
+							if (item.getClass().isAssignableFrom(BigInteger.class)
+									&& !typeClass.isAssignableFrom(BigInteger.class))
+								item = IDLUtils.bigIntToObject((BigInteger) item, typeClass);
+							if (item.getClass().isAssignableFrom(Principal.class)
+									&& !typeClass.isAssignableFrom(Principal.class))
+								item = IDLUtils.principalToObject((Principal) item, typeClass);
+						}
 					}
 					field.set(pojoValue, item);
 				} catch (IllegalArgumentException | IllegalAccessException e) {

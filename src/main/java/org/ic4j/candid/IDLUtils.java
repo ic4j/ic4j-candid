@@ -28,10 +28,10 @@ public class IDLUtils {
 
 
 	public static <T> T[] toArray(Class<T> clazz, Object[] sourceArray) {
-		if (sourceArray.length == 0)
-			return null;
-
 		List<T> list = new ArrayList<T>();
+		
+		if (sourceArray.length == 0)
+			return (T[]) list.toArray();
 
 		for (int i = 0; i < sourceArray.length; i++)
 			list.add((T) sourceArray[i]);
