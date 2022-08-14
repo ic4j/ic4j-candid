@@ -314,6 +314,28 @@ public final class PojoTest extends CandidAssert {
 		
 		Assertions.assertArrayEquals(complexPojoArrayValue, complexPojoArrayValueResult);
 		
+		ComplexOptionalPojo complexOptionalPojoValue = new ComplexOptionalPojo();
+		complexOptionalPojoValue.bar = Optional.ofNullable(new Boolean(true));
+		complexOptionalPojoValue.foo = Optional.ofNullable(BigInteger.valueOf(44));	
+		
+		complexOptionalPojoValue.pojo = Optional.ofNullable(pojoValue);
+		
+		idlValue = IDLValue.create(complexOptionalPojoValue, new PojoSerializer());
+
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		ComplexOptionalPojo complexOptionalPojoValueResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), ComplexOptionalPojo.class);
+		
+		Assertions.assertEquals(complexOptionalPojoValue, complexOptionalPojoValueResult);		
+		
 		ComplexPojo[] emptyComplexPojoArrayValue = {};
 		
 		idlValue = IDLValue.create(emptyComplexPojoArrayValue, new PojoSerializer());

@@ -17,6 +17,7 @@
 package org.ic4j.candid.parser;
 
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -33,6 +34,9 @@ public final class IDLType {
 	
 	Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
 
+	String name;
+	String description;
+	
 
 	void addInnerTypes(Object value) {
 		if (value == null)
@@ -170,7 +174,7 @@ public final class IDLType {
 
 	}
 
-	static IDLType createType(Class clazz) {
+	public static IDLType createType(Class clazz) {
 		IDLType idlType = new IDLType();
 
 		idlType.type = Type.NULL;
@@ -223,6 +227,42 @@ public final class IDLType {
 		else
 			return false;
 	}	
+	
+	public Map<String, IDLType> flatten()
+	{
+		Map<String, IDLType> flattenType = new LinkedHashMap<String, IDLType>();
+		
+		if(this.innerType != null)
+		{
+			Map<String, IDLType> flattenInnerType = this.innerType.flatten();
+			
+			for(String name : flattenInnerType.keySet())
+				flattenType.put(name, flattenInnerType.get(name));
+		}
+		
+		if(this.typeMap != null)
+		{
+			for(Label label : this.typeMap.keySet())
+			{
+				IDLType itemType = this.typeMap.get(label);
+				
+				if(itemType != null)
+				{
+					Map<String, IDLType> flattenItemType = itemType.flatten();
+					
+					for(String name : flattenItemType.keySet())
+						flattenType.put(name, flattenItemType.get(name));
+				}
+			}
+		}
+		
+		if(this.name != null)
+			flattenType.put(name, this);
+		
+		return flattenType;
+	}
+	
+
 
 	public Type getType() {
 		return this.type;
@@ -235,6 +275,34 @@ public final class IDLType {
 	public Map<Label,IDLType> getTypeMap()
 	{
 		return this.typeMap;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	
 

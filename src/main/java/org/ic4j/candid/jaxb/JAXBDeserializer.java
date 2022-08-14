@@ -14,7 +14,7 @@
  * limitations under the License.
 */
 
-package org.ic4j.candid.pojo;
+package org.ic4j.candid.jaxb;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -31,13 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.ic4j.candid.annotations.Id;
-import org.ic4j.candid.annotations.Ignore;
-import org.ic4j.candid.annotations.Name;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
@@ -48,10 +48,10 @@ import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 
-public final class PojoDeserializer implements ObjectDeserializer {
+public final class JAXBDeserializer implements ObjectDeserializer {
 
-	public static PojoDeserializer create() {
-		PojoDeserializer deserializer = new PojoDeserializer();
+	public static JAXBDeserializer create() {
+		JAXBDeserializer deserializer = new JAXBDeserializer();
 		return deserializer;
 	}
 
@@ -61,12 +61,9 @@ public final class PojoDeserializer implements ObjectDeserializer {
 		if (idlValue == null)
 			return null;
 
-		// handle BigDecimal like Double
-		if (BigDecimal.class.isAssignableFrom(clazz))
-			return (T) BigDecimal.valueOf((double) idlValue.getValue());
-
-		if (idlValue.getType().isPrimitive())
+		if (idlValue.getType().isPrimitive()) {
 			return idlValue.getValue();
+		}
 
 		// handle OPT
 		if (idlValue.getType() == Type.OPT) {
@@ -124,8 +121,8 @@ public final class PojoDeserializer implements ObjectDeserializer {
 		if (value == null)
 			return null;
 
-		// handle GregorianCalendar like nanosecond timestamp
-		if (GregorianCalendar.class.isAssignableFrom(clazz)) {
+		// handle XMLGregorianCalendar like nanosecond timestamp
+		if (XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
 			long ts;
 			if (value instanceof BigInteger)
 				ts = ((BigInteger) value).longValue();
@@ -135,20 +132,13 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			Date date = new Date(ts / 1000000);
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTime(date);
-			return (T) cal;
+			try {
+				return (T) DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+			} catch (DatatypeConfigurationException e) {
+				return null;
+			}
 		}
-
-		// handle Date like nanosecond timestamp
-		if (Date.class.isAssignableFrom(clazz)) {
-			long ts;
-			if (value instanceof BigInteger)
-				ts = ((BigInteger) value).longValue();
-			else
-				ts = (long) value;
-
-			Date date = new Date(ts / 1000000);
-			return (T) date;
-		}
+		
 
 		if (IDLType.isPrimitiveType(value.getClass()))
 			return (T) value;
@@ -221,7 +211,7 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			Field[] fields = clazz.getDeclaredFields();
 
 			for (Field field : fields) {
-				if (field.isAnnotationPresent(Ignore.class))
+				if (field.isAnnotationPresent(XmlTransient.class))
 					continue;
 
 				if (field.isEnumConstant())
@@ -240,28 +230,48 @@ public final class PojoDeserializer implements ObjectDeserializer {
 					continue;
 
 				Class typeClass = field.getType();
+				
+				boolean isOptional = false;
 
-				if (field.isAnnotationPresent(Name.class))
-					name = field.getAnnotation(Name.class).value();
+				if (field.isAnnotationPresent(XmlElement.class)) {
+					XmlElement xmlElement = field.getAnnotation(XmlElement.class);
 
-				Label label;
-				if (field.isAnnotationPresent(Id.class)) {
-					int id = field.getAnnotation(Id.class).value();
-					label = Label.createIdLabel((long) id);
-				} else
-					label = Label.createNamedLabel(name);
+					String xmlName = xmlElement.name();
+
+					if (xmlName != null)
+						name = xmlName;
+					
+					if(!xmlElement.required())
+						isOptional = true;
+				}
+
+				if (field.isAnnotationPresent(XmlAttribute.class)) {
+					XmlAttribute xmlAttribute = field.getAnnotation(XmlAttribute.class);
+
+					String xmlName = xmlAttribute.name();
+
+					if (xmlName != null)
+						name = xmlName;
+					
+					if(!xmlAttribute.required())
+						isOptional = true;					
+				}
+
+				Label label = Label.createNamedLabel(name);
 
 				Object item = valueMap.get(label);
-
+				
+				if(isOptional && !Optional.class.isAssignableFrom(typeClass) && item instanceof Optional)
+					item = ((Optional)item).orElse(null);
+				
 				// handle BigDecimal like Double
-				if (item != null && BigDecimal.class.isAssignableFrom(typeClass))
-					item = BigDecimal.valueOf((double) item);
+				if (item != null && BigDecimal.class.isAssignableFrom(typeClass)) 	
+					item = BigDecimal.valueOf((double) item).stripTrailingZeros();
 
 				if (List.class.isAssignableFrom(typeClass)) {
 					if (item != null && item.getClass().isArray()) {
-						Class nestedClass = (Class) ((ParameterizedType) field.getGenericType())
-								.getActualTypeArguments()[0];
-
+						Class nestedClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+						
 						List arrayValue = new ArrayList();
 						
 						Object[] array = (Object[]) item;
@@ -273,7 +283,7 @@ public final class PojoDeserializer implements ObjectDeserializer {
 						item = arrayValue;
 					}
 
-				} else if (Optional.class.isAssignableFrom(typeClass)) {
+				}else if (Optional.class.isAssignableFrom(typeClass)) {
 					Class nestedClass = (Class) ((ParameterizedType) field.getGenericType())
 							.getActualTypeArguments()[0];
 					item = this.getValue(item, nestedClass);

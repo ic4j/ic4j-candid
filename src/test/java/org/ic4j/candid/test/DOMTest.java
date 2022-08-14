@@ -40,13 +40,13 @@ public final class DOMTest extends CandidAssert {
 		dbf.setNamespaceAware(true);
 		dbf.setIgnoringElementContentWhitespace(true);
 
-		this.testDom(SIMPLE_NODE_FILE, null, false);
-		this.testDom(SIMPLE_ARRAY_NODE_FILE, null,false);
-		this.testDom(LOAN_APPLICATION_NODE_FILE, null,true);
-		this.testDom(TRADE_ARRAY_NODE_FILE, null,true);
+		this.testDom(SIMPLE_NODE_FILE, null, false,"http://ic4j.org/candid/test", "pojo");
+		this.testDom(SIMPLE_ARRAY_NODE_FILE, null,false,"http://ic4j.org/candid/test", "data");
+		this.testDom(LOAN_APPLICATION_NODE_FILE, null,true, "http://ic4j.org/candid/test", "data");
+		this.testDom(TRADE_ARRAY_NODE_FILE, null,true,"http://ic4j.org/candid/test", "data");
 	}
 
-	void testDom(String fileName, IDLType idlType, boolean attributes) {
+	void testDom(String fileName, IDLType idlType, boolean attributes, String namespace, String rootElement) {
 		try {
 			Node domNode = this.readNode(fileName);
 
@@ -65,7 +65,7 @@ public final class DOMTest extends CandidAssert {
 			byte[] buf = idlArgs.toBytes();
 
 			DOMDeserializer domDeserializer = DOMDeserializer.create(idlValue.getIDLType())
-					.rootElement("http://ic4j.org/candid/test", "data").setAttributes(attributes);
+					.rootElement(namespace, rootElement).setAttributes(attributes);
 
 			Node domNodeResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(domDeserializer, Node.class);
 			

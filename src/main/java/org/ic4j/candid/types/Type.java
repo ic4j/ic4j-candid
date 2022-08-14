@@ -141,5 +141,4 @@ public enum Type {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown type %s", value));
 		}
 	}
-
 }

@@ -17,7 +17,11 @@
 package org.ic4j.candid.pojo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,6 +52,10 @@ public final class PojoSerializer implements ObjectSerializer {
 		if(value == null)
 			return IDLValue.create(value,Type.NULL);
 		
+		// handle BigDecimal like Double
+		if(value instanceof BigDecimal)
+			value = ((BigDecimal)value).doubleValue();		
+		
 		boolean isArray = value.getClass().isArray();
 		boolean isOptional = Optional.class.isAssignableFrom(value.getClass());	
 		
@@ -66,8 +74,7 @@ public final class PojoSerializer implements ObjectSerializer {
 			IDLType idlType = IDLType.createType(Type.VEC);
 
 			if(value instanceof Byte[])
-			{
-				
+			{			
 				idlType = IDLType.createType(Type.VEC, Type.NAT8);
 				idlValue = IDLValue.create(value, idlType);
 			}
@@ -111,6 +118,22 @@ public final class PojoSerializer implements ObjectSerializer {
 			return IDLValue.create(value,Type.NULL);
 			
 		Class valueClass = value.getClass();
+		
+		// handle GregorianCalendar like nanosecond timestamp
+		if(value instanceof GregorianCalendar)
+		{
+			value = ((GregorianCalendar)value).getTimeInMillis()*1000000;
+			
+			return IDLValue.create(value,Type.INT);
+		}
+		
+		// handle Date like nanosecond timestamp
+		if(value instanceof Date)
+		{
+			value = ((Date)value).getTime()*1000000;
+			
+			return IDLValue.create(value,Type.INT);
+		}		
 		
 		if(Optional.class.isAssignableFrom(valueClass))
 		{
@@ -167,6 +190,18 @@ public final class PojoSerializer implements ObjectSerializer {
 			} catch (IllegalAccessException e) {
 				continue;
 			}
+			
+			// handle List like array
+			if(item != null && item instanceof List)
+			{
+				item = ((List)item).toArray();
+				
+				typeClass = item.getClass();
+			}
+			
+			// handle BigDecimal like Double
+			if(item != null && BigDecimal.class.isAssignableFrom(typeClass))
+				item = ((BigDecimal)item).doubleValue();					
 			
 			IDLType fieldType;
 			
@@ -275,8 +310,9 @@ public final class PojoSerializer implements ObjectSerializer {
 		
 		
 		// handle Enum to VARIANT
-		if(Enum.class.isAssignableFrom(valueClass))
+		if(valueClass.isEnum())
 		{
+			parentType = Type.VARIANT;
 			Enum enumValue = (Enum)value;
 			
 			String name = enumValue.name();
@@ -297,22 +333,30 @@ public final class PojoSerializer implements ObjectSerializer {
 		return idlValue;
 	}
 	
-	IDLType getIDLType(Class valueClass)
+	public IDLType getIDLType(Class valueClass)
 	{
 		// handle null values
 		if(valueClass == null)
 			return IDLType.createType(Type.NULL);
 		
 		if(IDLType.isDefaultType(valueClass))
-			return IDLType.createType(valueClass);
-			
+			return IDLType.createType(valueClass);		
 		
 		if(Optional.class.isAssignableFrom(valueClass))
 			return IDLType.createType(Type.OPT);
+		
+		if(List.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.VEC);		
+		
+		if(GregorianCalendar.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.INT);
+		
+		if(Date.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.INT);		
 
 		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
 
-		Field[] fields = valueClass.getFields();		
+		Field[] fields = valueClass.getDeclaredFields();		
 		
 		for(Field field : fields)
 		{
@@ -353,25 +397,33 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			if(field.isAnnotationPresent(org.ic4j.candid.annotations.Field.class))
 				fieldType = IDLType.createType(field.getAnnotation(org.ic4j.candid.annotations.Field.class).value());
-			else if(IDLType.isDefaultType(typeClass))
+			else if(IDLType.isDefaultType(typeClass) || GregorianCalendar.class.isAssignableFrom(typeClass) || Date.class.isAssignableFrom(typeClass))
 			{
 				// if we do not specify type in annotation and type is one of default
 				typeMap.put(label, fieldType);	
 				continue;
 			}
-			else
-				fieldType = IDLType.createType(Type.RECORD);
+			else if(List.class.isAssignableFrom(typeClass)) 
+			{	
+				isArray = true;
+				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				
+				fieldType = this.getIDLType(typeClass);
+			}			
 			
 			// do nested type introspection if type is RECORD		
 			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
 			{
+				String className = typeClass.getSimpleName();
 				
 				// handle RECORD arrays
 				if(isArray)
 				{
-					IDLType nestedIdlType = 
+					fieldType.setName(className);
 					fieldType = IDLType.createType(Type.VEC, fieldType);
 				}
+				else
+					fieldType.setName(className);
 
 			}else if(isArray)
 			{
@@ -388,7 +440,27 @@ public final class PojoSerializer implements ObjectSerializer {
 
 		}	
 		
-		IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+		IDLType idlType;
+		
+		if(valueClass.isEnum()) 
+		{
+			Class<Enum> enumClass = (Class<Enum>)valueClass;
+			Enum[] constants = enumClass.getEnumConstants();
+			
+			for (Enum constant : constants) {
+				String name = constant.name();
+
+				Label namedLabel = Label.createNamedLabel(name);
+
+				if (!typeMap.containsKey(namedLabel))
+					typeMap.put(namedLabel, null);
+			}			
+			idlType = IDLType.createType(Type.VARIANT, typeMap);
+		}
+		else
+			idlType = IDLType.createType(Type.RECORD, typeMap);
+		
+		idlType.setName(valueClass.getSimpleName());
 		
 		return idlType;		
 	}

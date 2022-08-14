@@ -13,7 +13,7 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.6.13'
+version '0.6.14'
 
 sourceCompatibility = 1.8
 
@@ -68,6 +68,8 @@ dependencies {
 	testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'	
 	
 	// https://mvnrepository.com/artifact/org.apache.derby/derby
-	testImplementation group: 'org.apache.derby', name: 'derby', version: '10.14.2.0'	
+	testImplementation group: 'org.apache.derby', name: 'derby', version: '10.14.2.0'
+	
+	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2021-9.2.6'	
 }
 
