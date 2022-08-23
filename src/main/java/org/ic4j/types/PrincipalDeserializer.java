@@ -25,7 +25,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 public final class PrincipalDeserializer extends StdDeserializer<Principal> {
-
+    
+	public PrincipalDeserializer() {
+        super(Principal.class);
+    }
+	
 	protected PrincipalDeserializer(Class<?> vc) {
 		super(vc);
 	}

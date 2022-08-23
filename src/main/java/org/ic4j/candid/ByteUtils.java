@@ -31,6 +31,37 @@ public final class ByteUtils {
 			output[i] = Byte.toUnsignedInt(input[i]);
 			
 		return output;
+	}
+	
+	public static byte[] toSignedByteArray(int[] input)
+	{
+		byte[] output = new byte[input.length];
+		
+		for(int i = 0; i < input.length; i++)
+			output[i] = (byte)input[i];
+			
+		return output;
+	}
+	
+	public static long getUnsignedInt(int x) {
+	    if(x > 0) return x;
+	    long res = (long)(Math.pow(2, 32)) + x;
+	    return res;
+	}	
+	
+	public static int compareByteArrays(byte[] bytes1, byte[] bytes2) {
+		int result = 0;
+
+		int i = 0;
+		while (bytes1.length > 0 && bytes2.length > 0) {
+			result = Long.compare(Byte.toUnsignedLong(bytes1[i]), Byte.toUnsignedLong(bytes2[i]));
+
+			if (result != 0)
+				break;
+			i++;
+		}
+		
+		return result;
 	}	
 
 }
