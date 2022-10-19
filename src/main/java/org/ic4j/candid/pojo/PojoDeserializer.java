@@ -319,12 +319,20 @@ public final class PojoDeserializer implements ObjectDeserializer {
 		Enum[] constants = clazz.getEnumConstants();
 
 		for (Enum constant : constants) {
-			String name = constant.name();
+			String enumName = constant.name();
+			
+			String name = enumName;
+			
+			try {
+				if (clazz.getField(name).isAnnotationPresent(Name.class))
+					name = clazz.getField(name).getAnnotation(Name.class).value();					
+			} catch (NoSuchFieldException | SecurityException e) {
+			}
 
 			Label namedLabel = Label.createNamedLabel(name);
 
 			if (label.equals(namedLabel))
-				return Enum.valueOf(clazz, name);
+				return Enum.valueOf(clazz, enumName);
 		}
 		// cannot find variant
 		return null;

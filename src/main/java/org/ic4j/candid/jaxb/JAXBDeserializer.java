@@ -24,7 +24,6 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.Optional;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -329,12 +329,20 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 		Enum[] constants = clazz.getEnumConstants();
 
 		for (Enum constant : constants) {
-			String name = constant.name();
+			String enumName = constant.name();
+			
+			String name = enumName;
+			
+			try {
+				if (clazz.getField(name).isAnnotationPresent(XmlEnumValue.class))
+					name = clazz.getField(name).getAnnotation(XmlEnumValue.class).value();					
+			} catch (NoSuchFieldException | SecurityException e) {
+			}
 
 			Label namedLabel = Label.createNamedLabel(name);
 
 			if (label.equals(namedLabel))
-				return Enum.valueOf(clazz, name);
+				return Enum.valueOf(clazz, enumName);
 		}
 		// cannot find variant
 		return null;

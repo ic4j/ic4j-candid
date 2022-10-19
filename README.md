@@ -18,15 +18,6 @@ and it's using Dfinity Rust agent as an inspiration, using similar package struc
 https://github.com/dfinity/agent-rs
 </a>
 
-Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Early access to variant and record types. 
-
-
-0.5.6
-Added support for Java POJO serialization and deserialization
-
-0.5.7
-Added support for JSON(Jackson), XML(DOM) serialization and deserialization and JDBC(ResultSet) serialization
-
 
 # License
 

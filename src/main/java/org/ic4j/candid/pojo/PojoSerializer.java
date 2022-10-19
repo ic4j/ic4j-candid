@@ -317,6 +317,12 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			String name = enumValue.name();
 			
+			try {
+				if (valueClass.getField(name).isAnnotationPresent(Name.class))
+					name = valueClass.getField(name).getAnnotation(Name.class).value();					
+			} catch (NoSuchFieldException | SecurityException e) {
+			}
+			
 			Label enumLabel = Label.createNamedLabel(name);
 			// if there is no Enum value, set it to null
 			if(!valueMap.containsKey(enumLabel))
@@ -449,7 +455,14 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			for (Enum constant : constants) {
 				String name = constant.name();
-
+				
+				try {
+					if (enumClass.getField(name).isAnnotationPresent(Name.class))
+						name = enumClass.getField(name).getAnnotation(Name.class).value();					
+				} catch (NoSuchFieldException | SecurityException e) {
+					continue;
+				}
+				
 				Label namedLabel = Label.createNamedLabel(name);
 
 				if (!typeMap.containsKey(namedLabel))
