@@ -20,9 +20,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 
-import org.apache.commons.codec.binary.Base32;
 
 final public class Bytes {
 	static final byte[] MAGIC_NUMBER = "DIDL".getBytes();

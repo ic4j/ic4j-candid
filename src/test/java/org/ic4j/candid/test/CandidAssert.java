@@ -40,7 +40,7 @@ abstract class CandidAssert {
 
 		String data = input.substring(input.indexOf('\\')).replace("\\", "");
 
-		return ArrayUtils.addAll(prefix.getBytes(), Hex.decodeHex(data));
+		return ArrayUtils.addAll(prefix.getBytes(), Hex.decodeHex(data.toCharArray()));
 	}
 
 	static byte[] getBytes(String input, String value) throws DecoderException {
