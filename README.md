@@ -46,8 +46,8 @@ IC4J Candid is available under Apache License 2.0.
 | opt   | Optional | 
 | principal   | Principal | 
 | vec   | array | 
-| record   | Map | 
-| variant   | Map | 
+| record   | Map, Class | 
+| variant   | Map, Enum | 
 | null   |Null | 
 
 
