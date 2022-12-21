@@ -28,10 +28,13 @@ import java.util.TreeMap;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
+import org.ic4j.candid.types.Meths;
 import org.ic4j.candid.types.Numbers;
 import org.ic4j.candid.types.Opcode;
 import org.ic4j.candid.types.Type;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 
 public final class Deserializer {
 	Bytes input;
@@ -42,6 +45,8 @@ public final class Deserializer {
 	Optional<String> fieldName = Optional.empty();
 
 	int recordNestingDepth;
+	
+	Opcode type;
 
 	Deserializer(Bytes input, TypeTable table, String fieldName, int recordNestingDepth) {
 		this.input = input;
@@ -64,7 +69,7 @@ public final class Deserializer {
 			return this.deserializeIdentifier();
 		}
 
-		Opcode type = this.table.peekType();
+		type = this.table.peekType();
 
 		if (type != Opcode.RECORD)
 			this.recordNestingDepth = 0;
@@ -112,6 +117,10 @@ public final class Deserializer {
 			return this.deserializeVariant();
 		case PRINCIPAL:
 			return this.deserializePrincipal();
+		case FUNC:
+			return this.deserializeFunc();	
+		case SERVICE:
+			return this.deserializeService();				
 		default:
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Unrecogized type %d", type.value));
@@ -258,6 +267,65 @@ public final class Deserializer {
 
 		return IDLValue.create(value, Type.INT64);
 	}
+	
+	public IDLValue deserializeFunc() {
+		Opcode opcode = this.table.parseType();
+		
+		if(opcode != Opcode.FUNC)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Not an expected type %d",opcode.value));
+		
+		byte bit = this.input.parseByte();
+
+		if (bit != (byte) 1)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+					String.format("Opaque reference not supported"));
+		
+		// parse Principal
+		bit = this.input.parseByte();
+
+		if (bit != (byte) 1)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+					String.format("Opaque reference not supported"));		
+
+		int len = this.input.leb128Read().intValue();
+
+		byte[] bytes = this.input.parseBytes(len);
+
+		Principal principal = Principal.from(bytes);
+		
+		// parse method name
+		
+		len = this.input.leb128Read().intValue();
+
+		String method = this.input.parseString(len);
+		
+		Func value = new Func(principal,method);
+			
+		return IDLValue.create(value, toIDLType(opcode) );
+	}
+	
+	public IDLValue deserializeService() {
+		Opcode opcode = this.table.parseType();	
+		
+		if(opcode != Opcode.SERVICE)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Not an expected type %d",opcode.value));
+		// parse Principal
+		byte bit = this.input.parseByte();
+
+		if (bit != (byte) 1)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+					String.format("Opaque reference not supported"));		
+
+		int len = this.input.leb128Read().intValue();
+
+		byte[] bytes = this.input.parseBytes(len);
+
+		Principal principal = Principal.from(bytes);
+		
+		Service value = new Service(principal);	
+
+		return IDLValue.create(value , toIDLType(opcode)  );		
+	}	
 
 	public IDLValue deserializeOpt() {
 		this.recordNestingDepth = 0;
@@ -352,8 +420,6 @@ public final class Deserializer {
 			value = array;
 			break;
 		}
-		case RECORD:
-			// TODO Implement vector, when supported
 		default:
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Seq only takes vector or tuple"));
@@ -374,7 +440,6 @@ public final class Deserializer {
 		
 		Optional<IDLType> expectedType = this.expectedType;
 		Optional<Map<Label,IDLType>> expectedTypeMap = Optional.empty();
-		
 
 		this.recordNestingDepth++;
 
@@ -667,6 +732,55 @@ public final class Deserializer {
 		this.table.currentType.addFirst(ty.longValue());
 
 		return array;
+	}
+	
+	IDLType toIDLType(Opcode opcode)
+	{
+		switch(opcode)
+		{
+			case FUNC:
+				List<IDLType> args = new ArrayList<IDLType>();
+				List<IDLType> rets = new ArrayList<IDLType>();
+				
+				for(Integer ty : opcode.args)
+				{
+					if(ty < 0)
+						args.add(IDLType.createType(Type.from(ty)));
+					else
+					{
+						Opcode subOpcode = this.table.rawValueToOpcode(ty);
+						args.add(toIDLType(subOpcode));
+					}
+				}
+				
+				for(Integer ty : opcode.rets)
+				{
+					if(ty < 0)
+						rets.add(IDLType.createType(Type.from(ty)));
+					else
+					{
+						Opcode subOpcode = this.table.rawValueToOpcode(ty);
+						rets.add(toIDLType(subOpcode));
+					}						
+				}
+				return IDLType.createType(args, rets, opcode.modes);
+			case SERVICE:
+				Map<String,IDLType> meths = new TreeMap<String,IDLType>();
+				
+				for(Meths meth : opcode.meths)
+				{
+					if(meth.type < 0)
+						meths.put(meth.name, IDLType.createType(Type.from(meth.type)));
+					else
+					{
+						Opcode subOpcode = this.table.rawValueToOpcode(meth.type);
+						meths.put(meth.name,  toIDLType(subOpcode));
+					}		
+				}
+				return IDLType.createType(meths);
+			default:
+				return IDLType.createType(Type.from(opcode.value));
+		}
 	}
 
 }

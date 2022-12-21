@@ -16,7 +16,12 @@
 
 package org.ic4j.candid.jackson;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -29,6 +34,8 @@ import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 import org.ic4j.types.Principal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -50,6 +57,11 @@ public final class JacksonSerializer implements ObjectSerializer {
 		JacksonSerializer deserializer = new JacksonSerializer();
 		return deserializer;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}	
 
 	@Override
 	public IDLValue serialize(Object value) {
@@ -316,4 +328,134 @@ public final class JacksonSerializer implements ObjectSerializer {
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Cannot convert type " + type.name());
 
 	}
+	
+	public static IDLType getIDLType(Class valueClass)
+	{
+		// handle null values
+		if(valueClass == null)
+			return IDLType.createType(Type.NULL);
+		
+		if(IDLType.isDefaultType(valueClass))
+			return IDLType.createType(valueClass);		
+		
+		if(Optional.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.OPT);
+		
+		if(List.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.VEC);		
+		
+		if(GregorianCalendar.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.INT);
+		
+		if(Date.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.INT);		
+
+		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
+
+		Field[] fields = valueClass.getDeclaredFields();		
+		
+		for(Field field : fields)
+		{
+			if(field.isAnnotationPresent(JsonIgnore.class))
+				continue;
+			
+			if(field.isEnumConstant())
+				continue;			
+			
+			String name = field.getName();
+			if(name.startsWith("this$"))
+				continue;
+			
+			if(name.startsWith("$VALUES"))
+				continue;			
+			
+			if(name.startsWith("ENUM$VALUES"))
+				continue;			
+			
+			Class typeClass = field.getType();	
+			
+			IDLType fieldType = getIDLType(typeClass);
+			
+			if(field.isAnnotationPresent(JsonProperty.class))
+				name = field.getAnnotation(JsonProperty.class).value();
+			
+			Label label = Label.createNamedLabel((String)name);			
+						
+			boolean isArray = typeClass.isArray();
+			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
+			
+			if(IDLType.isDefaultType(typeClass) || GregorianCalendar.class.isAssignableFrom(typeClass) || Date.class.isAssignableFrom(typeClass))
+			{
+				// if we do not specify type in annotation and type is one of default
+				typeMap.put(label, fieldType);	
+				continue;
+			}
+			else if(List.class.isAssignableFrom(typeClass)) 
+			{	
+				isArray = true;
+				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				
+				fieldType = getIDLType(typeClass);
+			}			
+			
+			// do nested type introspection if type is RECORD		
+			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
+			{
+				String className = typeClass.getSimpleName();
+				
+				// handle RECORD arrays
+				if(isArray)
+				{
+					fieldType.setName(className);
+					fieldType = IDLType.createType(Type.VEC, fieldType);
+				}
+				else
+					fieldType.setName(className);
+
+			}else if(isArray)
+			{
+				// handle arrays , not record types
+				fieldType = IDLType.createType(Type.VEC, fieldType);
+			}else if(isOptional)
+			{
+				// handle Optional, not record types
+				
+				fieldType = IDLType.createType(Type.OPT, fieldType);
+			}
+			
+			typeMap.put(label, fieldType);	
+
+		}	
+		
+		IDLType idlType;
+		
+		if(valueClass.isEnum()) 
+		{
+			Class<Enum> enumClass = (Class<Enum>)valueClass;
+			Enum[] constants = enumClass.getEnumConstants();
+			
+			for (Enum constant : constants) {
+				String name = constant.name();
+				
+				try {
+					if (enumClass.getField(name).isAnnotationPresent(JsonProperty.class))
+						name = enumClass.getField(name).getAnnotation(JsonProperty.class).value();					
+				} catch (NoSuchFieldException | SecurityException e) {
+					continue;
+				}
+				
+				Label namedLabel = Label.createNamedLabel(name);
+
+				if (!typeMap.containsKey(namedLabel))
+					typeMap.put(namedLabel, null);
+			}			
+			idlType = IDLType.createType(Type.VARIANT, typeMap);
+		}
+		else
+			idlType = IDLType.createType(Type.RECORD, typeMap);
+		
+		idlType.setName(valueClass.getSimpleName());
+		
+		return idlType;		
+	}	
 }

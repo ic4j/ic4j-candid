@@ -14,65 +14,62 @@
  * limitations under the License.
 */
 
-package org.ic4j.types;
+package org.ic4j.candid.parser;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
-public final class PrincipalError extends Error {
+public final class ParserError extends Error {
 	private static final long serialVersionUID = 1L;
 	
-	final static String RESOURCE_BUNDLE_FILE = "ic_types";
+	final static String RESOURCE_BUNDLE_FILE = "ic_candid_parser";
 	static ResourceBundle properties;
 	
-	PrincipalErrorCode code;
+	ParserErrorCode code;
 
 	static {
 		properties = ResourceBundle.getBundle(RESOURCE_BUNDLE_FILE);
 	}
 	
-	public static PrincipalError create(PrincipalErrorCode code, Object... args) {
+	public static ParserError create(ParserErrorCode code, Object... args) {
 
 		String message = properties.getString(code.label);
 		// set arguments
 		message = MessageFormat.format(message, args);
 
-		return new PrincipalError(code, message);
+		return new ParserError(code, message);
 	}
 	
-	public static PrincipalError create(PrincipalErrorCode code,Throwable t, Object... args) {
+	public static ParserError create(ParserErrorCode code,Throwable t, Object... args) {
 
 		String message = properties.getString(code.label);
 		// set arguments
 		message = MessageFormat.format(message, args);
 
-		return new PrincipalError(code,t, message);
+		return new ParserError(code,t, message);
 	}	
 
-	private PrincipalError(PrincipalErrorCode code, String message) {	
+	private ParserError(ParserErrorCode code, String message) {	
 		super(message);
 		this.code = code;
 	}
 	
-	private PrincipalError(PrincipalErrorCode code, Throwable t, String message) {
+	private ParserError(ParserErrorCode code, Throwable t, String message) {
 		super(message, t);
 		this.code = code;
 	}
 	
-	public PrincipalErrorCode getCode() {
+	public ParserErrorCode getCode() {
 		return code;
 	}
 	
-	public enum PrincipalErrorCode {
-		BUFFER_TOO_LONG("BufferTooLong"),
-		ABNORMAL_TEXTUAL_FORMAT("AbnormalTextualFormat"),
-		INVALID_TEXTUAL_FORMAT_NOT_BASE32("InvalidTextualFormatNotBase32"),
-		TEXT_TOO_SMALL("TextTooSmall"),	
-		EXTERNAL_ERROR("ExternalError");
+	public enum ParserErrorCode {
+		PARSE("Parse"),
+		CUSTOM("Custom");
 		
 		public String label;
 
-		PrincipalErrorCode(String label) {
+		ParserErrorCode(String label) {
 			this.label = label;
 		}
 			

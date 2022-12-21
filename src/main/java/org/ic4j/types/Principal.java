@@ -16,7 +16,6 @@
 
 package org.ic4j.types;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.zip.CRC32;

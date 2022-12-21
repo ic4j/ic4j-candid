@@ -1,0 +1,194 @@
+/**
+ * JJTree template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{  static = false;}PARSER_BEGIN(CandidParser)package org.ic4j.candid.parser.tree;
+
+public class CandidParser{  public static void main(String args [])  
+  {
+    CandidParser parser;
+    if(args.length == 0){    System.out.println("Reading from standard input...");    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    parser = new CandidParser(System.in);
+  }
+    else if(args.length == 1){
+      System.out.println("Reading from file " + args[0] + " . . ." );
+      try {
+        parser = new CandidParser(new java.io.FileInputStream(args[0]));
+      }
+       catch(java.io.FileNotFoundException e){
+        System.out.println("File " + args[0] + " not found.");
+        return ;
+        }       
+     }
+    else
+    	return;     try    {
+      SimpleNode n = parser.Start();      n.dump("candid");      System.out.println("Done");
+
+      System.out.println(n.jjtGetNumChildren());
+
+      for(int i = 0; i < n.jjtGetNumChildren(); i++)
+      {
+        System.out.println(n.jjtGetChild(i).getClass());
+      }    }    catch (Exception e)    {      System.out.println(e.getMessage());    }  }}PARSER_END(CandidParser)SKIP :{  " "
+| "\""  | "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : {
+	<TYPE: "type"> |
+	<SERVICE: "service"> |
+	<QUERY: "query"> |
+	<ONEWAY: "oneway"> |
+	< FUNC: "func">|
+	< BLOB: "blob">|
+	< BOOL: "bool">|
+	< NULL: "null">|
+	< RESERVED: "reserved">|
+	< EMPTY: "empty">|				
+	< RECORD: "record">|
+	< VARIANT: "variant">|
+	< PRINCIPAL: "principal">|
+	< OPT: "opt">|
+	< VEC: "vec">|
+	< TEXT: "text">|
+	< NAT: "nat">|
+	< NAT8: "nat8">|
+	< NAT16: "nat16">|
+	< NAT32: "nat32">|
+	< NAT64: "nat64"> |
+	< INT: "int">|
+	< INT8: "int8">|
+	< INT16: "int16">|
+	< INT32: "int32">|
+	< INT64: "int64">|
+	< FLOAT32: "float32">|
+	< FLOAT64: "float64">						
+}
+	TOKEN : /* IDENTIFIERS */{
+  < IDENTIFIER :
+     ("\"")?      < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ]
+	("\"")?
+>}SimpleNode Start() :{}{  (TypeExpression() | ServiceExpression() )+<EOF>  {    return jjtThis;  }}void TypeExpression() :{}{  < TYPE > Identifier() "=" (SimpleType() | FuncType() | OptType() | VecType() | RecordType() | VariantType() | Identifier()) ";"}
+
+void SimpleType() :
+{
+	Token t;
+}  
+{
+  (
+	t=< BLOB >|
+	t=< BOOL >|
+	t=< NULL >|
+	t=< EMPTY >|	
+	t=< PRINCIPAL>|	
+	t=< TEXT>|
+	t=< NAT>|
+	t=< NAT8>|
+	t=< NAT16>|
+	t=< NAT32>|
+	t=< NAT64>|
+	t=< INT>|
+	t=< INT8>|
+	t=< INT16>|
+	t=< INT32>|
+	t=< INT64>|
+	t=< FLOAT32>|
+	t=< FLOAT64>	
+	)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+void OptType() :
+{}
+{
+	< OPT> (SimpleType() | VecType() | FuncType()  | ServiceType() | RecordType() | VariantType() | Identifier())
+}
+
+void VecType() :
+{}
+{
+	< VEC> (SimpleType() |  OptType() | VecType()  | ServiceType() | RecordType() | VariantType() | Identifier())
+}
+
+void FuncType() :
+{
+} 
+{
+  < FUNC> Arguments() "->" Arguments() (Query() | Oneway())? 
+}
+
+void ServiceType() :
+{
+} 
+{
+  < SERVICE> "{"  (FuncType() (";")?)* "}" 
+}
+
+void Query() :
+{
+} 
+{
+  < QUERY > 
+}
+
+void Oneway() :
+{
+} 
+{
+  < ONEWAY > 
+}
+
+void RecordType() :
+{}
+{
+	< RECORD> "{" ((RecordSubType() | SimpleType()) (";")?)* "}"
+}
+
+void VariantType() :
+{}
+{
+	< VARIANT> "{" (VariantSubType() (";")?)* "}"
+}
+
+void RecordSubType() :
+{}
+{
+  (Identifier() ) (":"( SimpleType() | OptType()| VecType()| FuncType()| ServiceType() | RecordType() | VariantType() |  Identifier() ))? 
+}
+
+void VariantSubType() :
+{}
+{
+  Identifier() (":" (SimpleType() | OptType() | VecType() | FuncType()| ServiceType() | RecordType() | VariantType() | Identifier()))? 
+}
+
+void ServiceExpression() :
+{}
+{
+  < SERVICE > ( Identifier() ":"  | ":")  (Arguments() "->")?  "{" (Function())* "}" (";")?
+}
+
+void Function() :
+{}
+{
+  Identifier() ":"  Arguments() "->" Arguments() (Query() | Oneway())? (";")?
+}
+
+void Arguments() :
+{}
+{      "(" (Argument())* ")"    
+}
+
+void Argument() :
+{}
+{
+   (SimpleType() | OptType() | VecType() | FuncType() | RecordType() | VariantType() | Identifier()) (NamedArgument())? (",")?
+}
+
+void NamedArgument() :
+{}
+{
+   ":" (SimpleType() | OptType() | VecType() | FuncType() | RecordType() | VariantType() |  Identifier()) 
+}void Identifier() :{
+	Token t;
+}
+{
+	t=<IDENTIFIER>
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}

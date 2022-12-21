@@ -14,13 +14,28 @@
  * limitations under the License.
 */
 
-package org.ic4j.candid;
+package org.ic4j.candid.types;
 
-import org.ic4j.candid.parser.IDLType;
-import org.ic4j.candid.parser.IDLValue;
+import org.ic4j.candid.CandidError;
 
-public interface ObjectSerializer {
+public enum Mode {
+	QUERY(1),ONEWAY(2);
 	
-	public IDLValue serialize(Object value);
-	public void setIDLType(IDLType idlType);
+	public int value;
+
+	Mode(int value) {
+		this.value = value;
+	}
+	
+	public static Mode from(Integer value)
+	{
+		switch (value) {
+		case 1:
+			return QUERY;
+		case 2:
+			return ONEWAY;
+		default:
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown method mode %d", value));
+		}			
+	}
 }

@@ -3,10 +3,18 @@ package org.ic4j.candid.test;
 
 import java.math.BigInteger;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JacksonPojo {
+	@JsonProperty("bar")
 	public Boolean bar;
 
+	@JsonProperty("foo")
 	public BigInteger foo;
+	
+	@JsonIgnore
+	public String dummy;
 	
 	// Just for testing purposes, JUnit uses equals
 	@Override

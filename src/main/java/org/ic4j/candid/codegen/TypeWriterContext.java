@@ -14,13 +14,13 @@
  * limitations under the License.
 */
 
-package org.ic4j.candid;
+package org.ic4j.candid.codegen;
 
-import org.ic4j.candid.parser.IDLType;
-import org.ic4j.candid.parser.IDLValue;
+import java.io.Writer;
 
-public interface ObjectSerializer {
-	
-	public IDLValue serialize(Object value);
-	public void setIDLType(IDLType idlType);
+public 	class TypeWriterContext{
+	public Writer writer;
+	int level = 1;
+	boolean hasPrincipal = false;
+	boolean hasBlob = false;
 }

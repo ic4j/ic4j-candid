@@ -80,6 +80,15 @@ public final class DOMDeserializer extends DOMSerDeserBase implements ObjectDese
 
 		return this;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}
+	
+	public Class<?> getDefaultResponseClass() {
+		return Element.class;
+	}	
 
 	/**
 	 * @return the isQualified

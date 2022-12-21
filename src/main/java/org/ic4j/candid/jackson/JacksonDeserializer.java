@@ -63,18 +63,35 @@ public final class JacksonDeserializer implements ObjectDeserializer {
 		JacksonDeserializer deserializer = new JacksonDeserializer();
 		return deserializer; 
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}
+	
+	
+	public Class<?> getDefaultResponseClass() {
+		return JsonNode.class;
+	}
 
 	@Override
 	public <T> T deserialize(IDLValue value, Class<T> clazz) {
 		if(clazz != null)
 		{
 			
-			JsonNode jsonNode = this.getValue(value.getIDLType(), this.idlType, value.getValue());
+			
 			if(JsonNode.class.isAssignableFrom(clazz))
+			{
+				JsonNode jsonNode = this.getValue(value.getIDLType(), this.idlType, value.getValue());
 				return (T) jsonNode;
+			}
 			else
 			{
 				try {
+					if(!this.idlType.isPresent())
+						this.idlType = Optional.ofNullable(JacksonSerializer.getIDLType(clazz));
+					
+					JsonNode jsonNode = this.getValue(value.getIDLType(), this.idlType, value.getValue());
 					return (T) mapper.treeToValue(jsonNode, clazz);
 				} catch (JsonProcessingException | IllegalArgumentException e) {
 					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,e,e.getLocalizedMessage());

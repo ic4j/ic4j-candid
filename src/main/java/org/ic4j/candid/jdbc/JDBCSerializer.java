@@ -55,6 +55,11 @@ public final class JDBCSerializer implements ObjectSerializer {
 		this.isArray = isArray;
 		return this;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}	
 
 	@Override
 	public IDLValue serialize(Object value) {

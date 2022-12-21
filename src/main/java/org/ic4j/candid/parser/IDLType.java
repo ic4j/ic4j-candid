@@ -17,22 +17,32 @@
 package org.ic4j.candid.parser;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
 import org.ic4j.candid.types.Label;
+import org.ic4j.candid.types.Mode;
 import org.ic4j.candid.types.Type;
 
 import org.ic4j.candid.CandidError;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 
 public final class IDLType {
 	Type type;
 	IDLType innerType;
 	
 	Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
+	
+	public List<IDLType> args = new ArrayList<IDLType>();
+	public List<IDLType> rets = new ArrayList<IDLType>();
+	public List<Mode> modes = new ArrayList<Mode>();
+	Map<String,IDLType> meths = new TreeMap<String,IDLType>();
 
 	String name;
 	String description;
@@ -97,6 +107,25 @@ public final class IDLType {
 
 		return idlType;
 	}
+	
+	public static IDLType createType(List<IDLType> args, List<IDLType> rets, List<Mode> modes) {
+		IDLType idlType = new IDLType();
+
+		idlType.type = Type.FUNC;
+		idlType.args = args;
+		idlType.rets = rets;
+		idlType.modes = modes;	
+		return idlType;
+	}
+	
+	public static IDLType createType(Map<String,IDLType> meths) {
+		IDLType idlType = new IDLType();
+
+		idlType.type = Type.SERVICE;
+		idlType.meths = meths;
+	
+		return idlType;
+	}	
 
 	public static IDLType createType(Type type, IDLType innerType) {
 		IDLType idlType = new IDLType();
@@ -109,6 +138,7 @@ public final class IDLType {
 
 		return idlType;
 	}
+	
 	
 	public static IDLType createType(Type type, Map<Label,IDLType> typeMap) {
 		IDLType idlType = new IDLType();
@@ -167,7 +197,10 @@ public final class IDLType {
 			idlType.type = Type.RECORD;		
 		else if (value instanceof Principal)
 			idlType.type = Type.PRINCIPAL;
-
+		else if (value instanceof Func)
+			idlType.type = Type.FUNC;		
+		else if (value instanceof Service)
+			idlType.type = Type.SERVICE;
 		idlType.addInnerTypes(value);
 
 		return idlType;
@@ -203,8 +236,12 @@ public final class IDLType {
 			idlType.type = Type.VEC;
 		else if (Map.class.isAssignableFrom(clazz))
 			idlType.type = Type.RECORD;			
-		else if (clazz == Optional.class)
+		else if (clazz == Principal.class)
 			idlType.type = Type.PRINCIPAL;
+		else if (clazz == Func.class)
+			idlType.type = Type.FUNC;	
+		else if (clazz == Service.class)
+			idlType.type = Type.SERVICE;		
 
 		idlType.addInnerType(clazz);
 
@@ -262,8 +299,6 @@ public final class IDLType {
 		return flattenType;
 	}
 	
-
-
 	public Type getType() {
 		return this.type;
 	}
@@ -275,6 +310,34 @@ public final class IDLType {
 	public Map<Label,IDLType> getTypeMap()
 	{
 		return this.typeMap;
+	}
+
+	/**
+	 * @return the args
+	 */
+	public List<IDLType> getArgs() {
+		return args;
+	}
+
+	/**
+	 * @return the rets
+	 */
+	public List<IDLType> getRets() {
+		return rets;
+	}
+
+	/**
+	 * @return the modes
+	 */
+	public List<Mode> getModes() {
+		return modes;
+	}
+
+	/**
+	 * @return the meths
+	 */
+	public Map<String,IDLType> getMeths() {
+		return meths;
 	}
 
 	/**

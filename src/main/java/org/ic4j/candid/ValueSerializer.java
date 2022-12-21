@@ -19,7 +19,6 @@ package org.ic4j.candid;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,7 +27,9 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Numbers;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,6 +254,59 @@ public final class ValueSerializer implements Serializer{
     	this.value = ArrayUtils.addAll(this.value,value.getValue());
 		
 	}
+	
+	public final void serializeFunc(Func value) {
+		this.value = ArrayUtils.addAll(this.value,(byte)1);
+		this.value = ArrayUtils.addAll(this.value,(byte)1);
+		
+		if(value.getPrincipal() != null)
+		{
+			byte[] leb128 = Leb128.writeUnsigned(value.getPrincipal().getValue().length);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,leb128);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,value.getPrincipal().getValue());
+		}
+		else
+		{
+			byte[] leb128 = Leb128.writeUnsigned(0);
+			this.value = ArrayUtils.addAll(this.value,leb128);
+		}
+    	
+		if(value.getMethod() != null)
+		{
+			byte[] stringBytes = value.getMethod().getBytes();
+			
+	    	byte[] leb128 = Leb128.writeUnsigned(stringBytes.length);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,leb128);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,stringBytes); 
+		}
+		else
+		{
+			byte[] leb128 = Leb128.writeUnsigned(0);
+			this.value = ArrayUtils.addAll(this.value,leb128);
+		}		
+	}
+	
+	public final void serializeService(Service value) {
+		this.value = ArrayUtils.addAll(this.value,(byte)1);
+		
+		if(value.getPrincipal() != null)
+		{
+			byte[] leb128 = Leb128.writeUnsigned(value.getPrincipal().getValue().length);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,leb128);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,value.getPrincipal().getValue());
+		}
+		else
+		{
+			byte[] leb128 = Leb128.writeUnsigned(0);
+			this.value = ArrayUtils.addAll(this.value,leb128);
+		}
+	}	
 	
 	public final void serializeBinary(byte[] value, IDLType idlType)
     {   

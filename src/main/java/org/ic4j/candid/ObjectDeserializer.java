@@ -16,10 +16,12 @@
 
 package org.ic4j.candid;
 
+import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 
 public interface ObjectDeserializer {
 	
 	public <T> T deserialize(IDLValue value, Class<T> clazz);
-
+	public void setIDLType(IDLType idlType);
+	public Class<?> getDefaultResponseClass();
 }

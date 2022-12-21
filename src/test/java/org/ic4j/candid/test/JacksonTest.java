@@ -89,7 +89,7 @@ public final class JacksonTest extends CandidAssert {
 		byte[] buf = idlArgs.toBytes();
 
 		JacksonPojo pojoResult = IDLArgs.fromBytes(buf).getArgs().get(0)
-				.getValue(JacksonDeserializer.create(idlValue.getIDLType()), JacksonPojo.class);
+				.getValue(JacksonDeserializer.create(), JacksonPojo.class);
 
 		Assertions.assertEquals(pojo, pojoResult);
 	}

@@ -56,6 +56,11 @@ public final class DOMSerializer extends DOMSerDeserBase implements ObjectSerial
 
 		return this;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}	
 
 	@Override
 	public IDLValue serialize(Object value) {

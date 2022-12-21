@@ -14,13 +14,22 @@
  * limitations under the License.
 */
 
-package org.ic4j.candid;
+package org.ic4j.candid.annotations;
 
-import org.ic4j.candid.parser.IDLType;
-import org.ic4j.candid.parser.IDLValue;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public interface ObjectSerializer {
-	
-	public IDLValue serialize(Object value);
-	public void setIDLType(IDLType idlType);
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.ic4j.candid.types.Mode;
+
+@Documented
+@Retention(RUNTIME)
+@Target({FIELD,METHOD, PARAMETER})
+public @interface Modes {
+	public Mode[] value();
 }

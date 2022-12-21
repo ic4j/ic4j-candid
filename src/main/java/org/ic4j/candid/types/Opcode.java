@@ -16,6 +16,8 @@
 
 package org.ic4j.candid.types;
 
+import java.util.List;
+
 import org.ic4j.candid.CandidError;
 
 public enum Opcode {
@@ -23,10 +25,17 @@ public enum Opcode {
 	TEXT(-15), RESERVED(-16), EMPTY(-17), OPT(-18), VEC(-19),RECORD(-20), VARIANT(-21), FUNC(-22), SERVICE(-23), PRINCIPAL(-24);
 
 	public int value;
+	
+	public List<Integer> args;
+	public List<Integer> rets;
+	public List<Mode> modes;
+	public List<Meths> meths;
+	
 
 	Opcode(int value) {
 		this.value = value;
 	}
+	
 
 	public static Opcode from(Integer value) {
 		switch (value) {
@@ -82,5 +91,27 @@ public enum Opcode {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown opcode %d", value));
 		}
 	}
+	
+	public static Opcode func(List<Integer> args, List<Integer> rets, List<Mode> modes)
+	{
+		Opcode opcode = FUNC;
+		
+		opcode.args = args;
+		opcode.rets = rets;
+		opcode.modes = modes;
+		
+		return opcode;
+		
+	}
+	
+	public static Opcode service( List<Meths> meths)
+	{
+		Opcode opcode = SERVICE;
+		
+		opcode.meths = meths;
+		
+		return opcode;
+		
+	}	
 	
 }

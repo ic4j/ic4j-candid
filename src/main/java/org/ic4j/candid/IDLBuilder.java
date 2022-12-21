@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import org.ic4j.candid.parser.IDLValue;
 
 public final class IDLBuilder {
-	//List<IDLValue<?>> values = new ArrayList<IDLValue<?>>();
+	static final String MAGIC = "DIDL";
 	
 	ValueSerializer valueSer = new ValueSerializer();
 	TypeSerialize typeSer = new TypeSerialize();
@@ -59,7 +59,7 @@ public final class IDLBuilder {
 	
 	public void serialize(OutputStream os) throws IOException
 	{
-		os.write("DIDL".getBytes());
+		os.write(MAGIC.getBytes());
 		
 		this.typeSer.serialize();
 		

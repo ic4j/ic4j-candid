@@ -3,7 +3,9 @@ package org.ic4j.candid.test;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import javax.xml.transform.TransformerException;
 
@@ -19,7 +21,11 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.pojo.PojoDeserializer;
 import org.ic4j.candid.pojo.PojoSerializer;
+import org.ic4j.candid.types.Mode;
+import org.ic4j.candid.types.Type;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -35,7 +41,38 @@ public final class PojoTest extends CandidAssert {
 	}
 
 	@Test
-	public void test() {			
+	public void test() {	
+		// Ref Test
+		
+		RefPojo refPojo = new RefPojo();
+		
+		refPojo.bar = true;
+		refPojo.foo =  BigInteger.valueOf(32);
+		//refPojo.dummy = "dummy";
+		
+		refPojo.principal = Principal.fromString("w7x7r-cok77-xa");
+		
+		refPojo.service = new Service(Principal.fromString("w7x7r-cok77-xa"));
+		
+		refPojo.func0 = new Func(Principal.fromString("w7x7r-cok77-xa"),"a");
+		refPojo.func1 = new Func(Principal.fromString("w7x7r-cok77-xa"),"b");
+		refPojo.func2 = new Func(Principal.fromString("w7x7r-cok77-xa"),"c");
+		refPojo.func3 = new Func(Principal.fromString("w7x7r-cok77-xa"),"d");
+		refPojo.func4 = new Func(Principal.fromString("w7x7r-cok77-xa"),"e");
+		
+		IDLValue idlValue = IDLValue.create(refPojo, new PojoSerializer());
+		
+		List<IDLValue> args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		IDLArgs idlArgs = IDLArgs.create(args);
+
+		byte[] buf = idlArgs.toBytes();
+		
+		RefPojo refPojoResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), RefPojo.class);
+		
+		Assertions.assertEquals(refPojo, refPojoResult);
+		
 		// Loan Offer Request		
 		
 		LoanOfferRequest loanRequest = new LoanOfferRequest();
@@ -50,14 +87,14 @@ public final class PojoTest extends CandidAssert {
 		
 		LoanOfferRequest[] loanRequestArray = {loanRequest};
 
-		IDLValue idlValue = IDLValue.create(loanRequestArray, new PojoSerializer());
+		idlValue = IDLValue.create(loanRequestArray, new PojoSerializer());
 
-		List<IDLValue> args = new ArrayList<IDLValue>();
+		args = new ArrayList<IDLValue>();
 		args.add(idlValue);
 
-		IDLArgs idlArgs = IDLArgs.create(args);
+		idlArgs = IDLArgs.create(args);
 
-		byte[] buf = idlArgs.toBytes();
+		buf = idlArgs.toBytes();
 		
 		int[] unsignedBuf = ByteUtils.toUnsignedIntegerArray(buf);
 		
@@ -354,8 +391,213 @@ public final class PojoTest extends CandidAssert {
 		complexPojoArrayValueResult = outArgs.getArgs().get(0)
 				.getValue(new PojoDeserializer(), ComplexPojo[].class);
 		
-		Assertions.assertArrayEquals(emptyComplexPojoArrayValue, complexPojoArrayValueResult);		
+		Assertions.assertArrayEquals(emptyComplexPojoArrayValue, complexPojoArrayValueResult);	
 		
+		Func func = new Func(Principal.fromString("w7x7r-cok77-xa"),"a");
+		
+		// test Func with no type defined
+		idlValue = IDLValue.create(func, new PojoSerializer());
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Func funcResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Func.class);
+		
+		Assertions.assertEquals(func, funcResult);
+		
+		// test func with type defined
+		List<IDLType> funcArgs = new ArrayList<IDLType>();
+		List<IDLType> funcRets = new ArrayList<IDLType>();
+		List<Mode> funcModes = new ArrayList<Mode>();
+		
+		funcArgs.add(IDLType.createType(Type.TEXT));
+		funcRets.add(IDLType.createType(Type.NAT));
+		funcModes.add(Mode.QUERY);
+		
+		idlValue = IDLValue.create(func,new PojoSerializer(), IDLType.createType(funcArgs,funcRets,funcModes));
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		funcResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Func.class, IDLType.createType(funcArgs,funcRets,funcModes));
+		
+		Assertions.assertEquals(func, funcResult);
+		
+		// test func arrays no type defined
+		
+		Func func2 = new Func(Principal.fromString("rrkah-fqaaa-aaaaa-aaaaq-cai"),"b");
+		
+		Func[] funcArray = {func, func2};
+		
+		idlValue = IDLValue.create(funcArray, new PojoSerializer());
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Func[] funcArrayResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Func[].class);
+		
+		Assertions.assertArrayEquals(funcArray, funcArrayResult);
+		
+		// test func arrays type defined
+		
+		idlValue = IDLValue.create(funcArray,new PojoSerializer(), IDLType.createType(Type.VEC, IDLType.createType(funcArgs,funcRets,funcModes)));
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+
+		funcArrayResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Func[].class, IDLType.createType(Type.VEC, IDLType.createType(funcArgs,funcRets,funcModes)));
+		
+		Assertions.assertArrayEquals(funcArray, funcArrayResult);
+		
+		// test func Opt type not defined
+		
+		Optional<Func> funcOpt = Optional.ofNullable(func);
+		
+		idlValue = IDLValue.create(funcOpt, new PojoSerializer());
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Optional<Func> funcOptResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), funcOpt.getClass());
+		
+		Assertions.assertEquals(funcOpt.get(), funcOptResult.get());
+		
+		
+		// test func Opt type defined
+		
+		idlValue = IDLValue.create(funcOpt, new PojoSerializer(), IDLType.createType(Type.OPT, IDLType.createType(funcArgs,funcRets,funcModes)));
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		funcOptResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), funcOpt.getClass(), IDLType.createType(Type.OPT, IDLType.createType(funcArgs,funcRets,funcModes)));
+		
+		Assertions.assertEquals(funcOpt.get(), funcOptResult.get());
+		
+		// TEST services 
+		
+		// test Service with no type defined
+		Service service = new Service(Principal.fromString("w7x7r-cok77-xa"));
+		
+		idlValue = IDLValue.create(service, new PojoSerializer());
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Service serviceResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Service.class);
+		
+		Assertions.assertEquals(service, serviceResult);
+		
+		// test service with type defined
+
+		Map<String,IDLType> funcMap = new TreeMap<String,IDLType>();
+		
+		funcMap.put("foo", IDLType.createType(funcArgs,funcRets,funcModes));
+		funcMap.put("foo2", IDLType.createType(funcArgs,funcRets,funcModes));		
+		
+		idlValue = IDLValue.create(service,new PojoSerializer(), IDLType.createType(funcMap));
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		serviceResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Service.class, IDLType.createType(funcMap));
+		
+		Assertions.assertEquals(service, serviceResult);
+		
+		// test service array no type defined
+		Service service2 = new Service(Principal.fromString("rrkah-fqaaa-aaaaa-aaaaq-cai"));	
+		
+		Service[] serviceArray = {service, service2};
+		
+		idlValue = IDLValue.create(serviceArray, new PojoSerializer());
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Service[] serviceArrayResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Service[].class);
+		
+		Assertions.assertArrayEquals(serviceArray, serviceArrayResult);
+		
+		// test service array with type defined
+		idlValue = IDLValue.create(serviceArray, new PojoSerializer(), IDLType.createType(Type.VEC, IDLType.createType(funcMap)));
+		
+		args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		serviceArrayResult = outArgs.getArgs().get(0)
+				.getValue(new PojoDeserializer(), Service[].class, IDLType.createType(Type.VEC, IDLType.createType(funcMap)));
+		
+		Assertions.assertArrayEquals(serviceArray, serviceArrayResult);
+	
 		try {
 			BinaryPojo binaryValue = new BinaryPojo();
 			binaryValue.primitive = getBinary(BINARY_IMAGE_FILE, "png");	

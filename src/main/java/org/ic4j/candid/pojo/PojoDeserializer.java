@@ -31,10 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.ic4j.candid.annotations.Id;
 import org.ic4j.candid.annotations.Ignore;
 import org.ic4j.candid.annotations.Name;
@@ -42,18 +38,30 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 
 public final class PojoDeserializer implements ObjectDeserializer {
+	Optional<IDLType> idlType = Optional.empty();
 
 	public static PojoDeserializer create() {
 		PojoDeserializer deserializer = new PojoDeserializer();
 		return deserializer;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}
+	
+	public Class<?> getDefaultResponseClass() {
+		return Object.class;
+	}	
 
 	@Override
 	public <T> T deserialize(IDLValue idlValue, Class<T> clazz) {
@@ -66,6 +74,10 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			return (T) BigDecimal.valueOf((double) idlValue.getValue());
 
 		if (idlValue.getType().isPrimitive())
+			return idlValue.getValue();
+		
+		// manage Func and Service types
+		if (idlValue.getType() == Type.FUNC || idlValue.getType() == Type.SERVICE)
 			return idlValue.getValue();
 
 		// handle OPT
@@ -101,14 +113,26 @@ public final class PojoDeserializer implements ObjectDeserializer {
 
 				if (clazz.isAssignableFrom(Byte[].class))
 					return (T) (Byte[]) array;
+				
+				Class componentTypeClass;
+				if(List.class.isAssignableFrom(clazz))
+				{	
+					final ParameterizedType genericSuperclass = (ParameterizedType) clazz.getGenericSuperclass();
+					componentTypeClass = (Class) genericSuperclass.getActualTypeArguments()[0];
+				}
+				else
+					componentTypeClass = clazz.getComponentType();
 
-				Object[] result = (Object[]) Array.newInstance(clazz.getComponentType(), array.length);
+				Object[] result = (Object[]) Array.newInstance(componentTypeClass, array.length);
 
 				for (int i = 0; i < array.length; i++) {
-					result[i] = this.getValue(array[i], clazz.getComponentType());
+					result[i] = this.getValue(array[i], componentTypeClass);
 				}
-
-				return (T) result;
+				
+				if(List.class.isAssignableFrom(clazz))
+					return (T) Arrays.asList(result);
+				else	
+					return (T) result;
 			}
 		}
 
@@ -149,6 +173,12 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			Date date = new Date(ts / 1000000);
 			return (T) date;
 		}
+		
+		if (Service.class.isAssignableFrom(clazz))
+			return (T) value;
+		
+		if (Func.class.isAssignableFrom(clazz))
+			return (T) value;		
 
 		if (IDLType.isPrimitiveType(value.getClass()))
 			return (T) value;

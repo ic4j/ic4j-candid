@@ -75,8 +75,16 @@ abstract class CandidAssert {
 	}
 
 	static void assertValue(String input, Object value) {
-		IDLValue idlValue = IDLValue.create(value);
-
+		
+		IDLValue idlValue;
+		if(value instanceof IDLValue)
+		{	
+			idlValue = (IDLValue) value;
+			value = idlValue.getValue();
+		}
+		else
+			idlValue = IDLValue.create(value);
+		
 		try {
 			byte[] bytes = getBytes(input);
 			assertValue(bytes, input, value, idlValue);
@@ -104,7 +112,14 @@ abstract class CandidAssert {
 	}
 
 	static void assertValue(String input, String stringValue, Object value) {
-		IDLValue idlValue = IDLValue.create(value);
+		IDLValue idlValue;
+		if(value instanceof IDLValue)
+		{	
+			idlValue = (IDLValue) value;
+			value = idlValue.getValue();
+		}
+		else
+			idlValue = IDLValue.create(value);
 
 		try {
 			byte[] bytes = getBytes(input, stringValue);
@@ -146,7 +161,7 @@ abstract class CandidAssert {
 		else
 			LOG.info("null" + ":" + input);
 
-		Assertions.assertArrayEquals(buf, bytes);
+		Assertions.assertArrayEquals(buf, bytes);		
 
 		IDLArgs outArgs;
 

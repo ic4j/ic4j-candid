@@ -7,15 +7,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.parser.IDLArgs;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
+import org.ic4j.candid.types.Meths;
+import org.ic4j.candid.types.Mode;
 import org.ic4j.candid.types.Type;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -29,7 +35,67 @@ public final class CandidTest extends CandidAssert{
 	
 	@Test
 	public void test() {
-		// testing record, move it after
+		// testing function, move it after
+						
+		try {
+			//IDLArgs.fromBytes(getBytes("DIDL\\02\\6a\\01\\71\\01\\7d\\00\\69\\02\\03foo\\00\\04foo\\32\\00\\01\\01\\01\\03\\ca\\ff\\ee"));
+			
+			byte[] bytes = ArrayUtils.addAll(getBytes("DIDL\\02\\6a\\01\\71\\01\\7d\\00\\69\\02\\03"), "foo".getBytes());
+			bytes = ArrayUtils.addAll(bytes,getBytes("\\00\\04"));
+			 
+			bytes = ArrayUtils.addAll(bytes	,"foo".getBytes());
+			bytes = ArrayUtils.addAll(bytes,getBytes("\\32\\00\\01\\01\\01\\03\\ca\\ff\\ee"));
+			
+			IDLArgs idlArgs = IDLArgs.fromBytes(bytes);
+			
+			byte[] buf = idlArgs.toBytes();
+			
+			idlArgs = IDLArgs.fromBytes(buf);
+			
+			Service service = new Service(Principal.fromString("w7x7r-cok77-xa"));
+			
+			List<IDLType> args = new ArrayList<IDLType>();
+			List<IDLType> rets = new ArrayList<IDLType>();
+			List<Mode> modes = new ArrayList<Mode>();
+			
+			IDLValue idlValue = IDLValue.create(service, IDLType.createType(new TreeMap<String,IDLType>()));
+			assertValue("DIDL\\01\\69\\00\\01\\00\\01\\03\\ca\\ff\\ee", idlValue);
+			
+			Map<String,IDLType> funcMap = new TreeMap<String,IDLType>();
+			
+			args.add(IDLType.createType(Type.TEXT));
+			rets.add(IDLType.createType(Type.NAT));
+
+			funcMap.put("foo", IDLType.createType(args,rets,modes));
+			funcMap.put("foo2", IDLType.createType(args,rets,modes));
+			
+			idlValue = IDLValue.create(service, IDLType.createType(funcMap));
+			
+			assertValue(bytes, "DIDL\\02\\6a\\01\\71\\01\\7d\\00\\69\\02\\03foo\\00\\04foo\\32\\00\\01\\01\\01\\03\\ca\\ff\\ee",service, idlValue);
+			
+			Func func = new Func(Principal.fromString("w7x7r-cok77-xa"),"a");
+			
+			args = new ArrayList<IDLType>();
+			rets = new ArrayList<IDLType>();
+			modes = new ArrayList<Mode>();
+			
+			idlValue = IDLValue.create(func, IDLType.createType(args,rets,modes));
+			
+			assertValue("DIDL\\01\\6a\\00\\00\\00\\01\\00\\01\\01\\03\\ca\\ff\\ee\\01\\61", idlValue);
+			
+			func = new Func(Principal.fromString("w7x7r-cok77-xa"),"foo");
+			
+			args.add(IDLType.createType(Type.TEXT));
+			rets.add(IDLType.createType(Type.NAT));
+			modes.add(Mode.QUERY);
+			
+			idlValue = IDLValue.create(func, IDLType.createType(args,rets,modes));
+			
+			assertValue("DIDL\\01\\6a\\01\\71\\01\\7d\\01\\01\\01\\00\\01\\01\\03\\ca\\ff\\ee\\03","foo", idlValue);
+		} catch (Exception e) {
+			LOG.debug(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());
+		}		
 
 		// fundamentaly wrong
 		assertFail("", CandidError.class, "empty");

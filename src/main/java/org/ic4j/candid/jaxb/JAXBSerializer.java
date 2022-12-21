@@ -43,11 +43,17 @@ import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 
 public final class JAXBSerializer implements ObjectSerializer {
-
+	Optional<IDLType> idlType = Optional.empty();
+	
 	public static JAXBSerializer create() {
 		JAXBSerializer deserializer = new JAXBSerializer();
 		return deserializer;
 	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}	
 
 	@Override
 	public IDLValue serialize(Object value) {
@@ -344,7 +350,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 		return idlValue;
 	}
 
-	public IDLType getIDLType(Class valueClass) {
+	public static IDLType getIDLType(Class valueClass) {
 		
 		// handle null values
 		if (valueClass == null)
@@ -403,7 +409,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 			if (field.isAnnotationPresent(XmlAnyElement.class))
 				fieldType = IDLType.createType(Type.RESERVED);
 			else		
-				fieldType = this.getIDLType(typeClass);
+				fieldType = getIDLType(typeClass);
 
 			if (field.isAnnotationPresent(XmlElement.class)) {
 				XmlElement xmlElement = field.getAnnotation(XmlElement.class);
@@ -450,7 +456,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 				isArray = true;
 				typeClass = (Class) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
 
-				fieldType = this.getIDLType(typeClass);
+				fieldType = getIDLType(typeClass);
 			}
 
 			// do nested type introspection if type is RECORD

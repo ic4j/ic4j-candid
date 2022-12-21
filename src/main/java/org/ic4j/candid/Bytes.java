@@ -82,7 +82,6 @@ final public class Bytes {
 	public void parseMagic() {
 		byte[] buf = new byte[4];
 
-
 		try
 		{
 			this.data.get(buf, 0, buf.length);

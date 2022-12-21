@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 
 import org.ic4j.candid.ByteUtils;
@@ -19,7 +20,16 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public final class TradingTest extends CandidAssert {
+	static final String TRADE_JSON_ARRAY_NODE_FILE = "TradeArrayNode.json";
+	static final String TRADE_DOM_ARRAY_NODE_FILE = "TradeArrayNode.xml";
+	
+	// Instantiate the Factory
+	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();	
+
+	ObjectMapper mapper = new ObjectMapper();	
 
 	static {
 		LOG = LoggerFactory.getLogger(TradingTest.class);

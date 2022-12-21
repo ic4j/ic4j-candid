@@ -22,7 +22,7 @@ import java.util.ResourceBundle;
 public final class CandidError extends Error {
 	private static final long serialVersionUID = 1L;
 	
-	final static String RESOURCE_BUNDLE_FILE = "dfinity_candid";
+	final static String RESOURCE_BUNDLE_FILE = "ic_candid";
 	static ResourceBundle properties;
 	
 	CandidErrorCode code;

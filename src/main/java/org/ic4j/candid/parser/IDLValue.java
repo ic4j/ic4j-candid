@@ -29,7 +29,9 @@ import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 import org.ic4j.candid.ObjectSerializer;
 import org.ic4j.candid.Serializer;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 
 public final class IDLValue implements Deserialize{
 	Optional<?> value;
@@ -108,6 +110,12 @@ public final class IDLValue implements Deserialize{
 	
 	public void idlSerialize(Serializer serializer)
 	{
+		if(!value.isPresent())
+		{
+			serializer.serializeNull();
+			return;
+		}
+		
 		switch(this.idlType.type)
 		{
 		case NULL:
@@ -174,7 +182,13 @@ public final class IDLValue implements Deserialize{
 			break;
 		case PRINCIPAL:
 			serializer.serializePrincipal((Principal) IDLUtils.objectToPrincipal(value.get()));
-			break;				
+			break;	
+		case FUNC:
+			serializer.serializeFunc((Func) value.get());
+			break;	
+		case SERVICE:
+			serializer.serializeService((Service) value.get());
+			break;			
 		}
 
 	}
@@ -202,7 +216,8 @@ public final class IDLValue implements Deserialize{
 	
 	public <T> T getValue(IDLType expectedIdlType)
 	{
-		// TODO match with expected type, if RECORD or VARIANT remap hash to named Label
+		this.idlType =expectedIdlType;
+		
 		if(this.value.isPresent())
 		{
 			T value = (T) this.value.get();
@@ -216,6 +231,12 @@ public final class IDLValue implements Deserialize{
 	{
 		return (T) objectDeserializer.deserialize(this, clazz);
 	}
+	
+	public <T> T getValue(ObjectDeserializer objectDeserializer, Class<T> clazz,  IDLType expectedIdlType)
+	{
+		this.idlType =expectedIdlType;
+		return (T) objectDeserializer.deserialize(this, clazz);
+	}	
 	
 	public void deserialize(Deserializer deserializer) {
 		IDLValue idlValue = deserializer.deserializeAny();	

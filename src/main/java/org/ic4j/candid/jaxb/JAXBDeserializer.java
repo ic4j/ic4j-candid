@@ -49,10 +49,21 @@ import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
 
 public final class JAXBDeserializer implements ObjectDeserializer {
-
+	Optional<IDLType> idlType = Optional.empty();
+	
 	public static JAXBDeserializer create() {
 		JAXBDeserializer deserializer = new JAXBDeserializer();
 		return deserializer;
+	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
+	}
+	
+	
+	public Class<?> getDefaultResponseClass() {
+		return Object.class;
 	}
 
 	@Override

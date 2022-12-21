@@ -29,24 +29,41 @@ import java.util.TreeMap;
 
 import org.ic4j.candid.annotations.Id;
 import org.ic4j.candid.annotations.Ignore;
+import org.ic4j.candid.annotations.Modes;
 import org.ic4j.candid.annotations.Name;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
+import org.ic4j.candid.types.Mode;
 import org.ic4j.candid.types.Type;
+import org.ic4j.types.Func;
+import org.ic4j.types.Service;
 import org.apache.commons.lang3.ArrayUtils;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectSerializer;
 
 public final class PojoSerializer implements ObjectSerializer {
+	Optional<IDLType> idlType = Optional.empty();
 	
 	public static PojoSerializer create() {
-		PojoSerializer deserializer = new PojoSerializer();
-		return deserializer; 
+		PojoSerializer serializer = new PojoSerializer();
+		return serializer; 
+	}
+	
+	public void setIDLType(IDLType idlType)
+	{
+		this.idlType = Optional.ofNullable(idlType);
 	}	
 
 	@Override
 	public IDLValue serialize(Object value) {
+		
+		//handle primitives
+		if(this.idlType.isPresent())
+		{
+			if(this.idlType.get().getType().isPrimitive())
+				return IDLValue.create(value,this.idlType.get().getType());
+		}
 		
 		// handle null values
 		if(value == null)
@@ -63,16 +80,25 @@ public final class PojoSerializer implements ObjectSerializer {
 		if(IDLType.isDefaultType(value.getClass()) && !isArray && !isOptional)
 			return IDLValue.create(value);
 		
+		// manage Func and Service types
+		if(value instanceof Func || value instanceof Service)
+			return IDLValue.create(value);
+		
 		IDLValue idlValue;
+		
+		// handle List like array
+		if(value instanceof List)
+			value = ((List)value).toArray();
+			
 		
 		// handle arrays
 		if(value.getClass().isArray())
 		{
-			List<Map<Label, Object>> arrayValue = new ArrayList();
-			
+			List <Object> arrayValue = new ArrayList<Object>();
 			
 			IDLType idlType = IDLType.createType(Type.VEC);
 
+			// handle binaries
 			if(value instanceof Byte[])
 			{			
 				idlType = IDLType.createType(Type.VEC, Type.NAT8);
@@ -90,12 +116,22 @@ public final class PojoSerializer implements ObjectSerializer {
 				for(int i = 0; i < array.length; i++)
 				{
 					Object item = array[i];
+								
 					
-					IDLValue itemIDLValue = this.getIDLValue(item, Type.VEC);
-					
-					arrayValue.add(itemIDLValue.getValue());
-					
-					idlType = IDLType.createType(Type.VEC, itemIDLValue.getIDLType());
+					if(this.idlType.isPresent() && this.idlType.get().getType() == Type.VEC)
+					{
+						idlType = this.idlType.get();	
+						IDLValue itemIDLValue = this.getIDLValue(item,Type.VEC, idlType.getInnerType());
+						
+						arrayValue.add(itemIDLValue.getValue());
+					}
+					else 
+					{	
+						IDLValue itemIDLValue = this.getIDLValue(item, Type.VEC, null);
+						
+						arrayValue.add(itemIDLValue.getValue());
+						idlType = IDLType.createType(Type.VEC, itemIDLValue.getIDLType());
+					}
 				}
 				
 				
@@ -104,36 +140,56 @@ public final class PojoSerializer implements ObjectSerializer {
 		}
 		else
 		{			
-			idlValue = this.getIDLValue(value, null);
+			if(this.idlType.isPresent())
+					idlValue = this.getIDLValue(value,null, this.idlType.get());
+			else		
+				idlValue = this.getIDLValue(value, null, null);
 		}
 
 		return idlValue;
 	}
 	
 	// Introspect POJO Class
-	IDLValue getIDLValue(Object value, Type parentType)
+	IDLValue getIDLValue(Object value,Type parentType, IDLType idlType)
 	{
+
+		//handle primitives, func and service types
+		if(idlType != null)
+			if(idlType.getType().isPrimitive() || idlType.getType() == Type.FUNC || idlType.getType() == Type.SERVICE )
+				return IDLValue.create(value,idlType.getType());
+			
+		
 		// handle null values
 		if(value == null)
 			return IDLValue.create(value,Type.NULL);
 			
 		Class valueClass = value.getClass();
-		
-		// handle GregorianCalendar like nanosecond timestamp
-		if(value instanceof GregorianCalendar)
+
+		if(!valueClass.isArray())
 		{
-			value = ((GregorianCalendar)value).getTimeInMillis()*1000000;
+			// handle GregorianCalendar like nanosecond timestamp
+			if(value instanceof GregorianCalendar)
+			{
+				value = ((GregorianCalendar)value).getTimeInMillis()*1000000;
+				
+				return IDLValue.create(value,Type.INT);
+			}
 			
-			return IDLValue.create(value,Type.INT);
+			// handle Date like nanosecond timestamp
+			if(value instanceof Date)
+			{
+				value = ((Date)value).getTime()*1000000;
+				
+				return IDLValue.create(value,Type.INT);
+			}				
+	
+			if(IDLType.isPrimitiveType(valueClass))
+				return IDLValue.create(value);
+			
+			// manage Func and Service types
+			if(value instanceof Func || value instanceof Service)
+				return IDLValue.create(value);
 		}
-		
-		// handle Date like nanosecond timestamp
-		if(value instanceof Date)
-		{
-			value = ((Date)value).getTime()*1000000;
-			
-			return IDLValue.create(value,Type.INT);
-		}		
 		
 		if(Optional.class.isAssignableFrom(valueClass))
 		{
@@ -147,10 +203,18 @@ public final class PojoSerializer implements ObjectSerializer {
 					return IDLValue.create(optionalValue);
 				else
 				{
-					IDLValue nestedIdlValue = this.getIDLValue(nestedValue, Type.OPT);
-					
-					IDLType nestedIdlType = nestedIdlValue.getIDLType();
-					return IDLValue.create(Optional.ofNullable(nestedIdlValue.getValue()), IDLType.createType(Type.OPT, nestedIdlType));
+					IDLValue nestedIdlValue;
+					if(idlType != null && idlType.getType() == Type.OPT && idlType.getInnerType() != null)
+					{	
+						nestedIdlValue = this.getIDLValue(nestedValue, Type.OPT, idlType.getInnerType());
+						return IDLValue.create(Optional.ofNullable(nestedIdlValue.getValue()), idlType);
+					}
+					else
+					{	
+						nestedIdlValue = this.getIDLValue(nestedValue,Type.OPT, null);
+						IDLType nestedIdlType = nestedIdlValue.getIDLType();						
+						return IDLValue.create(Optional.ofNullable(nestedIdlValue.getValue()), IDLType.createType(Type.OPT, nestedIdlType));
+					}
 				}
 			}else return IDLValue.create(optionalValue);
 		}
@@ -232,16 +296,48 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			if(field.isAnnotationPresent(org.ic4j.candid.annotations.Field.class))
 				fieldType = IDLType.createType(field.getAnnotation(org.ic4j.candid.annotations.Field.class).value());
-			else if(IDLType.isDefaultType(typeClass))
+			else if(IDLType.isDefaultType(typeClass) || Func.class.isAssignableFrom(typeClass) || Service.class.isAssignableFrom(typeClass))
 			{
-				// if we do not specify type in annotation and type is one of default
-				fieldType = IDLType.createType(item);
+				// if type is defined in IDLType
+				if(idlType != null && (idlType.getType() == Type.RECORD || idlType.getType() == Type.VARIANT))
+					fieldType = idlType.getTypeMap().get(label);
+				else				
+					// if we do not specify type in annotation and type is one of default
+					fieldType = IDLType.createType(item);
+				
+				// handle Func type
+				if(fieldType.getType() == Type.FUNC)
+				{
+					if (field.isAnnotationPresent(Modes.class))
+					{
+						Mode[] modes = field.getAnnotation(Modes.class).value();
+						
+						if(modes.length > 0)
+						{
+							fieldType.modes.add(modes[0]);
+						}
+					}
+				}
 				typeMap.put(label, fieldType);	
 				valueMap.put(label, item);
 				continue;
 			}
 			else
 				fieldType = IDLType.createType(Type.RECORD);
+			
+			// handle Func type
+			if(fieldType.getType() == Type.FUNC)
+			{
+				if (field.isAnnotationPresent(Modes.class))
+				{
+					Mode[] modes = field.getAnnotation(Modes.class).value();
+					
+					if(modes.length > 0)
+					{
+						fieldType.modes.add(modes[0]);
+					}
+				}
+			}	
 			
 			// do nested type introspection if type is RECORD		
 			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
@@ -253,6 +349,12 @@ public final class PojoSerializer implements ObjectSerializer {
 					Object[] nestedArray = (Object[])item;
 					List<Object> arrayValue = new ArrayList();
 					
+					IDLType innerIDLType = null;
+					
+					if(idlType != null && idlType.getType() == Type.VEC && idlType.getInnerType() != null)
+						innerIDLType = idlType.getInnerType();
+					
+					
 					fieldType = this.getIDLType(typeClass.getComponentType());
 					for(int i = 0; i < nestedArray.length; i++)
 					{
@@ -261,9 +363,18 @@ public final class PojoSerializer implements ObjectSerializer {
 						if(nestedValue != null && Optional.class.isAssignableFrom(nestedValue.getClass()))
 							nestedValue = ((Optional)nestedValue).orElse(null);
 						
-						IDLValue nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType());
+						IDLValue nestedIdlValue;
 						
-						fieldType = nestedIdlValue.getIDLType();
+						if(innerIDLType != null && (innerIDLType.getType() == Type.RECORD || innerIDLType.getType() == Type.VARIANT))
+						{
+							fieldType = innerIDLType.getTypeMap().get(label);
+							nestedIdlValue = this.getIDLValue(nestedValue, innerIDLType.getType(), fieldType);
+						}
+						else
+						{	
+							nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType(), null);
+							fieldType = nestedIdlValue.getIDLType();
+						}
 						
 						arrayValue.add(nestedIdlValue.getValue());
 					}
@@ -278,20 +389,40 @@ public final class PojoSerializer implements ObjectSerializer {
 					if(item != null && Optional.class.isAssignableFrom(typeClass))
 						nestedValue = ((Optional)item).orElse(null);
 					
-					IDLValue nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType());
+					IDLType innerIDLType = null;
+					if(idlType != null && idlType.getType() == Type.OPT && idlType.getInnerType() != null)
+						innerIDLType = idlType.getInnerType();
 					
-					fieldType = nestedIdlValue.getIDLType();
+					IDLValue nestedIdlValue;
+					
+					if(innerIDLType != null && (innerIDLType.getType() == Type.RECORD || innerIDLType.getType() == Type.VARIANT))
+					{
+						fieldType = innerIDLType.getTypeMap().get(label);
+						nestedIdlValue = this.getIDLValue(nestedValue, innerIDLType.getType(), fieldType);
+					}
+					else
+					{	
+						nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType(), null);
+						fieldType = nestedIdlValue.getIDLType();
+					}										
 					
 					item = nestedIdlValue.getValue();
 				}
 			}else if(isArray)
 			{
 				// handle arrays , not record types
-				fieldType = IDLType.createType(Type.VEC, fieldType);
+				
+				if(idlType != null && idlType.getType() == Type.VEC && idlType.getInnerType() != null)
+					fieldType = idlType.getInnerType();
+				else
+					fieldType = IDLType.createType(Type.VEC, fieldType);
 			}else if(isOptional)
 			{
-				// handle Optional, not record types			
-				fieldType = IDLType.createType(Type.OPT, fieldType);
+				// handle Optional, not record types	
+				if(idlType != null && idlType.getType() == Type.OPT && idlType.getInnerType() != null)
+					fieldType = idlType.getInnerType();
+				else
+					fieldType = IDLType.createType(Type.OPT, fieldType);
 			}
 
 			if(fieldType.getType() == Type.NAT || fieldType.getType() == Type.INT)
@@ -333,20 +464,28 @@ public final class PojoSerializer implements ObjectSerializer {
 				
 		}
 		
-		IDLType idlType = IDLType.createType(parentType, typeMap);
+		if(idlType == null)
+			idlType = IDLType.createType(parentType, typeMap);
+		
 		IDLValue idlValue = IDLValue.create(valueMap, idlType);
 		
 		return idlValue;
 	}
 	
-	public IDLType getIDLType(Class valueClass)
+	public static IDLType getIDLType(Class valueClass)
 	{
 		// handle null values
 		if(valueClass == null)
 			return IDLType.createType(Type.NULL);
 		
 		if(IDLType.isDefaultType(valueClass))
-			return IDLType.createType(valueClass);		
+			return IDLType.createType(valueClass);	
+		
+		if(Service.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.SERVICE);
+		
+		if(Func.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.FUNC);		
 		
 		if(Optional.class.isAssignableFrom(valueClass))
 			return IDLType.createType(Type.OPT);
@@ -384,7 +523,7 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			Class typeClass = field.getType();	
 			
-			IDLType fieldType = this.getIDLType(typeClass);
+			IDLType fieldType = getIDLType(typeClass);
 			
 			if(field.isAnnotationPresent(Name.class))
 				name = field.getAnnotation(Name.class).value();
@@ -403,10 +542,26 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			if(field.isAnnotationPresent(org.ic4j.candid.annotations.Field.class))
 				fieldType = IDLType.createType(field.getAnnotation(org.ic4j.candid.annotations.Field.class).value());
-			else if(IDLType.isDefaultType(typeClass) || GregorianCalendar.class.isAssignableFrom(typeClass) || Date.class.isAssignableFrom(typeClass))
+			else if(IDLType.isDefaultType(typeClass) || GregorianCalendar.class.isAssignableFrom(typeClass) || Date.class.isAssignableFrom(typeClass)
+					|| Func.class.isAssignableFrom(typeClass) || Service.class.isAssignableFrom(typeClass))
 			{
 				// if we do not specify type in annotation and type is one of default
+						
+				// handle Func type
+				if(fieldType.getType() == Type.FUNC)
+				{
+					if (field.isAnnotationPresent(Modes.class))
+					{
+						Mode[] modes = field.getAnnotation(Modes.class).value();
+						
+						if(modes.length > 0)
+						{
+							fieldType.modes.add(modes[0]);
+						}
+					}
+				}
 				typeMap.put(label, fieldType);	
+				
 				continue;
 			}
 			else if(List.class.isAssignableFrom(typeClass)) 
@@ -414,7 +569,7 @@ public final class PojoSerializer implements ObjectSerializer {
 				isArray = true;
 				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
 				
-				fieldType = this.getIDLType(typeClass);
+				fieldType = getIDLType(typeClass);
 			}			
 			
 			// do nested type introspection if type is RECORD		
@@ -440,6 +595,20 @@ public final class PojoSerializer implements ObjectSerializer {
 				// handle Optional, not record types
 				
 				fieldType = IDLType.createType(Type.OPT, fieldType);
+			}
+			
+			// handle Func type
+			if(fieldType.getType() == Type.FUNC)
+			{
+				if (field.isAnnotationPresent(Modes.class))
+				{
+					Mode[] modes = field.getAnnotation(Modes.class).value();
+					
+					if(modes.length > 0)
+					{
+						fieldType.modes.add(modes[0]);
+					}
+				}
 			}
 			
 			typeMap.put(label, fieldType);	

@@ -17,12 +17,12 @@
 package org.ic4j.candid;
 
 import java.math.BigInteger;
-import java.util.Map;
 import java.util.Optional;
 
 import org.ic4j.candid.parser.IDLType;
-import org.ic4j.candid.parser.IDLValue;
+import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
+import org.ic4j.types.Service;
 
 public interface Serializer {
 	public void serializeNull();
@@ -76,5 +76,9 @@ public interface Serializer {
 	public void serializeVariant(Object value, IDLType idlType);
 	
 	public void serializePrincipal(Principal value);
+	
+	public void serializeFunc(Func value);
+	
+	public void serializeService(Service value);
 
 }

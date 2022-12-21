@@ -141,4 +141,60 @@ public enum Type {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown type %s", value));
 		}
 	}
+	
+	public Integer intValue()
+	{
+		switch (this) {
+		case NULL:
+			return -1;
+		case BOOL:
+			return -2;
+		case NAT:
+			return -3;			
+		case INT:
+			return -4;
+		case NAT8:
+			return -5;
+		case NAT16:
+			return -6;
+		case NAT32:
+			return -7;
+		case NAT64:
+			return -8;			
+		case INT8:
+			return -8;
+		case INT16:
+			return -10;
+		case INT32:
+			return -11;
+		case INT64:
+			return -12;
+		case FLOAT32:
+			return -13;
+		case FLOAT64:
+			return -14;
+		case TEXT:
+			return -15;
+		case RESERVED:
+			return -16;
+		case EMPTY:
+			return -17;
+		case OPT:
+			return -18;				
+		case VEC:
+			return -19;	
+		case RECORD:
+			return -20;	
+		case VARIANT:
+			return -21;
+		case FUNC:
+			return -22;
+		case SERVICE:
+			return -23;
+		case PRINCIPAL:
+			return -24;			
+		default:
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unsupported type %s", this));
+		}		
+	}
 }
