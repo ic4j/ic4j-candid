@@ -9,6 +9,7 @@
 plugins {
     id 'java'
     id 'eclipse'
+    id "com.intershop.gradle.javacc" version "4.0.1"
 }
 
 
@@ -20,6 +21,22 @@ sourceCompatibility = 1.8
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+javacc {
+	javaCCVersion '5.0'
+    // configuration container for all javacc configurations
+    configs {
+        tree {
+            inputFile = file('src/main/java/org/ic4j/candid/parser/tree/CandidParser.jjt')
+            outputDir = file('src/main/java')
+            packageName = 'org.ic4j.candid.parser.tree'
+            
+            jjtree {
+                    nodePackage = 'org.ic4j.candid.parser.tree'
+                }
+        }       
+    }
 }
 
 jar {
@@ -60,7 +77,7 @@ dependencies {
 	
 	// https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
 	implementation group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.11'	
-	
+		
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
 	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.3'	
 
