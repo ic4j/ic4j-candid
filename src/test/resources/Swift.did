@@ -1,0 +1,615 @@
+type TaxRecordPeriod1Code = 
+ variant {
+   HLF1;
+   HLF2;
+   MM01;
+   MM02;
+   MM03;
+   MM04;
+   MM05;
+   MM06;
+   MM07;
+   MM08;
+   MM09;
+   MM10;
+   MM11;
+   MM12;
+   QTR1;
+   QTR2;
+   QTR3;
+   QTR4;
+ };
+type TaxRecordDetails1 = 
+ record {
+   Amt: ActiveOrHistoricCurrencyAndAmount;
+   Prd: opt TaxPeriod1;
+ };
+type TaxRecord1 = 
+ record {
+   AddtlInf: opt text;
+   CertId: opt text;
+   Ctgy: opt text;
+   CtgyDtls: opt text;
+   DbtrSts: opt text;
+   FrmsCd: opt text;
+   Prd: opt TaxPeriod1;
+   TaxAmt: opt TaxAmount1;
+   Tp: opt text;
+ };
+type TaxPeriod1 = 
+ record {
+   FrToDt: opt DatePeriodDetails;
+   Tp: opt TaxRecordPeriod1Code;
+   Yr: opt int;
+ };
+type TaxParty2 = 
+ record {
+   Authstn: opt TaxAuthorisation1;
+   RegnId: opt text;
+   TaxId: opt text;
+   TaxTp: opt text;
+ };
+type TaxParty1 = 
+ record {
+   RegnId: opt text;
+   TaxId: opt text;
+   TaxTp: opt text;
+ };
+type TaxInformation3 = 
+ record {
+   AdmstnZn: opt text;
+   Cdtr: opt TaxParty1;
+   Dbtr: opt TaxParty2;
+   Dt: opt int;
+   Mtd: opt text;
+   Rcrd: opt vec TaxRecord1;
+   RefNb: opt text;
+   SeqNb: opt float64;
+   TtlTaxAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   TtlTaxblBaseAmt: opt ActiveOrHistoricCurrencyAndAmount;
+ };
+type TaxAuthorisation1 = 
+ record {
+   Nm: opt text;
+   Titl: opt text;
+ };
+type TaxAmount1 = 
+ record {
+   Dtls: opt vec TaxRecordDetails1;
+   Rate: opt float64;
+   TaxblBaseAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   TtlAmt: opt ActiveOrHistoricCurrencyAndAmount;
+ };
+type StructuredRemittanceInformation7 = 
+ record {
+   AddtlRmtInf: opt vec text;
+   CdtrRefInf: opt CreditorReferenceInformation2;
+   Invcee: opt PartyIdentification32;
+   Invcr: opt PartyIdentification32;
+   RfrdDocAmt: opt RemittanceAmount1;
+   RfrdDocInf: opt vec ReferredDocumentInformation3;
+ };
+type StructuredRegulatoryReporting3 = 
+ record {
+   Amt: opt ActiveOrHistoricCurrencyAndAmount;
+   Cd: opt text;
+   Ctry: opt text;
+   Dt: opt int;
+   Inf: opt vec text;
+   Tp: opt text;
+ };
+type ServiceLevel8Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type RemittanceLocationMethod2Code = 
+ variant {
+   EDIC;
+   EMAL;
+   FAXI;
+   POST;
+   SMSM;
+   URID;
+ };
+type RemittanceLocation2 = 
+ record {
+   RmtId: opt text;
+   RmtLctnElctrncAdr: opt text;
+   RmtLctnMtd: opt RemittanceLocationMethod2Code;
+   RmtLctnPstlAdr: opt NameAndAddress10;
+ };
+type RemittanceInformation5 = 
+ record {
+   Strd: opt vec StructuredRemittanceInformation7;
+   Ustrd: opt vec text;
+ };
+type RemittanceAmount1 = 
+ record {
+   AdjstmntAmtAndRsn: opt vec DocumentAdjustment1;
+   CdtNoteAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   DscntApldAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   DuePyblAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   RmtdAmt: opt ActiveOrHistoricCurrencyAndAmount;
+   TaxAmt: opt ActiveOrHistoricCurrencyAndAmount;
+ };
+type RegulatoryReportingType1Code = 
+ variant {
+   BOTH;
+   CRED;
+   DEBT;
+ };
+type RegulatoryReporting3 = 
+ record {
+   Authrty: opt RegulatoryAuthority2;
+   DbtCdtRptgInd: opt RegulatoryReportingType1Code;
+   Dtls: opt vec StructuredRegulatoryReporting3;
+ };
+type RegulatoryAuthority2 = 
+ record {
+   Ctry: opt text;
+   Nm: opt text;
+ };
+type ReferredDocumentType2 = 
+ record {
+   CdOrPrtry: ReferredDocumentType1Choice;
+   Issr: opt text;
+ };
+type ReferredDocumentType1Choice = 
+ record {
+   Cd: opt DocumentType5Code;
+   Prtry: opt text;
+ };
+type ReferredDocumentInformation3 = 
+ record {
+   Nb: opt text;
+   RltdDt: opt int;
+   Tp: opt ReferredDocumentType2;
+ };
+type Purpose2Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type Priority2Code = 
+ variant {
+   HIGH;
+   NORM;
+ };
+type PostalAddress6 = 
+ record {
+   AdrLine: opt vec text;
+   AdrTp: opt AddressType2Code;
+   BldgNb: opt text;
+   Ctry: opt text;
+   CtrySubDvsn: opt text;
+   Dept: opt text;
+   PstCd: opt text;
+   StrtNm: opt text;
+   SubDept: opt text;
+   TwnNm: opt text;
+ };
+type PersonIdentificationSchemeName1Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type PersonIdentification5 = 
+ record {
+   DtAndPlcOfBirth: opt DateAndPlaceOfBirth;
+   Othr: opt vec GenericPersonIdentification1;
+ };
+type PaymentTypeInformation19 = 
+ record {
+   CtgyPurp: opt CategoryPurpose1Choice;
+   InstrPrty: opt Priority2Code;
+   LclInstrm: opt LocalInstrument2Choice;
+   SvcLvl: opt ServiceLevel8Choice;
+ };
+type PaymentMethod3Code = 
+ variant {
+   CHK;
+   TRA;
+   TRF;
+ };
+type PaymentInstructionInformation3 = 
+ record {
+   BtchBookg: opt bool;
+   CdtTrfTxInf: vec CreditTransferTransactionInformation10;
+   ChrgBr: opt ChargeBearerType1Code;
+   ChrgsAcct: opt CashAccount16;
+   ChrgsAcctAgt: opt BranchAndFinancialInstitutionIdentification4;
+   CtrlSum: opt float64;
+   Dbtr: PartyIdentification32;
+   DbtrAcct: CashAccount16;
+   DbtrAgt: BranchAndFinancialInstitutionIdentification4;
+   DbtrAgtAcct: opt CashAccount16;
+   NbOfTxs: opt text;
+   PmtInfId: text;
+   PmtMtd: PaymentMethod3Code;
+   PmtTpInf: opt PaymentTypeInformation19;
+   PoolgAdjstmntDt: opt int;
+   ReqdExctnDt: int;
+   UltmtDbtr: opt PartyIdentification32;
+ };
+type PaymentIdentification1 = 
+ record {
+   EndToEndId: text;
+   InstrId: opt text;
+ };
+type PartyIdentification32 = 
+ record {
+   CtctDtls: opt ContactDetails2;
+   CtryOfRes: opt text;
+   Id: opt Party6Choice;
+   Nm: opt text;
+   PstlAdr: opt PostalAddress6;
+ };
+type Party6Choice = 
+ record {
+   OrgId: opt OrganisationIdentification4;
+   PrvtId: opt PersonIdentification5;
+ };
+type OrganisationIdentificationSchemeName1Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type OrganisationIdentification4 = 
+ record {
+   BICOrBEI: opt text;
+   Othr: opt vec GenericOrganisationIdentification1;
+ };
+type NamePrefix1Code = 
+ variant {
+   DOCT;
+   MADM;
+   MISS;
+   MIST;
+ };
+type NameAndAddress10 = 
+ record {
+   Adr: PostalAddress6;
+   Nm: text;
+ };
+type LocalInstrument2Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type InstructionForCreditorAgent1 = 
+ record {
+   Cd: opt Instruction3Code;
+   InstrInf: opt text;
+ };
+type Instruction3Code = 
+ variant {
+   CHQB;
+   HOLD;
+   PHOB;
+   TELB;
+ };
+type GroupHeader32 = 
+ record {
+   Authstn: opt vec Authorisation1Choice;
+   CreDtTm: int;
+   CtrlSum: opt float64;
+   FwdgAgt: opt BranchAndFinancialInstitutionIdentification4;
+   InitgPty: PartyIdentification32;
+   MsgId: text;
+   NbOfTxs: text;
+ };
+type GenericPersonIdentification1 = 
+ record {
+   Id: text;
+   Issr: opt text;
+   SchmeNm: opt PersonIdentificationSchemeName1Choice;
+ };
+type GenericOrganisationIdentification1 = 
+ record {
+   Id: text;
+   Issr: opt text;
+   SchmeNm: opt OrganisationIdentificationSchemeName1Choice;
+ };
+type GenericFinancialIdentification1 = 
+ record {
+   Id: text;
+   Issr: opt text;
+   SchmeNm: opt FinancialIdentificationSchemeName1Choice;
+ };
+type GenericAccountIdentification1 = 
+ record {
+   Id: text;
+   Issr: opt text;
+   SchmeNm: opt AccountSchemeName1Choice;
+ };
+type FinancialInstitutionIdentification7 = 
+ record {
+   BIC: opt text;
+   ClrSysMmbId: opt ClearingSystemMemberIdentification2;
+   Nm: opt text;
+   Othr: opt GenericFinancialIdentification1;
+   PstlAdr: opt PostalAddress6;
+ };
+type FinancialIdentificationSchemeName1Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type ExchangeRateType1Code = 
+ variant {
+   AGRD;
+   SALE;
+   SPOT;
+ };
+type ExchangeRateInformation1 = 
+ record {
+   CtrctId: opt text;
+   RateTp: opt ExchangeRateType1Code;
+   XchgRate: opt float64;
+ };
+type EquivalentAmount2 = 
+ record {
+   Amt: ActiveOrHistoricCurrencyAndAmount;
+   CcyOfTrf: text;
+ };
+type DocumentType5Code = 
+ variant {
+   AROI;
+   BOLD;
+   CINV;
+   CMCN;
+   CNFA;
+   CREN;
+   DEBN;
+   DISP;
+   DNFA;
+   HIRI;
+   MSIN;
+   SBIN;
+   SOAC;
+   TSUT;
+   VCHR;
+ };
+type DocumentType3Code = 
+ variant {
+   DISP;
+   FXDR;
+   PUOR;
+   RADM;
+   RPIN;
+   SCOR;
+ };
+type DocumentAdjustment1 = 
+ record {
+   AddtlInf: opt text;
+   Amt: ActiveOrHistoricCurrencyAndAmount;
+   CdtDbtInd: opt CreditDebitCode;
+   Rsn: opt text;
+ };
+type DatePeriodDetails = 
+ record {
+   FrDt: int;
+   ToDt: int;
+ };
+type DateAndPlaceOfBirth = 
+ record {
+   BirthDt: int;
+   CityOfBirth: text;
+   CtryOfBirth: text;
+   PrvcOfBirth: opt text;
+ };
+type CustomerCreditTransferInitiationV03 = 
+ record {
+   GrpHdr: GroupHeader32;
+   PmtInf: vec PaymentInstructionInformation3;
+ };
+type CreditorReferenceType2 = 
+ record {
+   CdOrPrtry: CreditorReferenceType1Choice;
+   Issr: opt text;
+ };
+type CreditorReferenceType1Choice = 
+ record {
+   Cd: opt DocumentType3Code;
+   Prtry: opt text;
+ };
+type CreditorReferenceInformation2 = 
+ record {
+   Ref: opt text;
+   Tp: opt CreditorReferenceType2;
+ };
+type CreditTransferTransactionInformation10 = 
+ record {
+   Amt: AmountType3Choice;
+   Cdtr: opt PartyIdentification32;
+   CdtrAcct: opt CashAccount16;
+   CdtrAgt: opt BranchAndFinancialInstitutionIdentification4;
+   CdtrAgtAcct: opt CashAccount16;
+   ChqInstr: opt Cheque6;
+   ChrgBr: opt ChargeBearerType1Code;
+   InstrForCdtrAgt: opt vec InstructionForCreditorAgent1;
+   InstrForDbtrAgt: opt text;
+   IntrmyAgt1: opt BranchAndFinancialInstitutionIdentification4;
+   IntrmyAgt1Acct: opt CashAccount16;
+   IntrmyAgt2: opt BranchAndFinancialInstitutionIdentification4;
+   IntrmyAgt2Acct: opt CashAccount16;
+   IntrmyAgt3: opt BranchAndFinancialInstitutionIdentification4;
+   IntrmyAgt3Acct: opt CashAccount16;
+   PmtId: PaymentIdentification1;
+   PmtTpInf: opt PaymentTypeInformation19;
+   Purp: opt Purpose2Choice;
+   RgltryRptg: opt vec RegulatoryReporting3;
+   RltdRmtInf: opt vec RemittanceLocation2;
+   RmtInf: opt RemittanceInformation5;
+   Tax: opt TaxInformation3;
+   UltmtCdtr: opt PartyIdentification32;
+   UltmtDbtr: opt PartyIdentification32;
+   XchgRateInf: opt ExchangeRateInformation1;
+ };
+type CreditDebitCode = 
+ variant {
+   CRDT;
+   DBIT;
+ };
+type ContactDetails2 = 
+ record {
+   EmailAdr: opt text;
+   FaxNb: opt text;
+   MobNb: opt text;
+   Nm: opt text;
+   NmPrfx: opt NamePrefix1Code;
+   Othr: opt text;
+   PhneNb: opt text;
+ };
+type ClearingSystemMemberIdentification2 = 
+ record {
+   ClrSysId: opt ClearingSystemIdentification2Choice;
+   MmbId: text;
+ };
+type ClearingSystemIdentification2Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type ChequeType2Code = 
+ variant {
+   BCHQ;
+   CCCH;
+   CCHQ;
+   DRFT;
+   ELDR;
+ };
+type ChequeDeliveryMethod1Choice = 
+ record {
+   Cd: opt ChequeDelivery1Code;
+   Prtry: opt text;
+ };
+type ChequeDelivery1Code = 
+ variant {
+   CRCD;
+   CRDB;
+   CRFA;
+   MLCD;
+   MLDB;
+   MLFA;
+   PUCD;
+   PUDB;
+   PUFA;
+   RGCD;
+   RGDB;
+   RGFA;
+ };
+type Cheque6 = 
+ record {
+   ChqFr: opt NameAndAddress10;
+   ChqMtrtyDt: opt int;
+   ChqNb: opt text;
+   ChqTp: opt ChequeType2Code;
+   DlvrTo: opt NameAndAddress10;
+   DlvryMtd: opt ChequeDeliveryMethod1Choice;
+   FrmsCd: opt text;
+   InstrPrty: opt Priority2Code;
+   MemoFld: opt vec text;
+   PrtLctn: opt text;
+   RgnlClrZone: opt text;
+ };
+type ChargeBearerType1Code = 
+ variant {
+   CRED;
+   DEBT;
+   SHAR;
+   SLEV;
+ };
+type CategoryPurpose1Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type CashAccountType4Code = 
+ variant {
+   CACC;
+   CASH;
+   CHAR;
+   CISH;
+   COMM;
+   LOAN;
+   MGLD;
+   MOMA;
+   NREX;
+   ODFT;
+   ONDP;
+   SACC;
+   SLRY;
+   SVGS;
+   TAXE;
+   TRAS;
+ };
+type CashAccountType2 = 
+ record {
+   Cd: opt CashAccountType4Code;
+   Prtry: opt text;
+ };
+type CashAccount16 = 
+ record {
+   Ccy: opt text;
+   Id: AccountIdentification4Choice;
+   Nm: opt text;
+   Tp: opt CashAccountType2;
+ };
+type BranchData2 = 
+ record {
+   Id: opt text;
+   Nm: opt text;
+   PstlAdr: opt PostalAddress6;
+ };
+type BranchAndFinancialInstitutionIdentification4 = 
+ record {
+   BrnchId: opt BranchData2;
+   FinInstnId: FinancialInstitutionIdentification7;
+ };
+type Authorisation1Code = 
+ variant {
+   AUTH;
+   FDET;
+   FSUM;
+   ILEV;
+ };
+type Authorisation1Choice = 
+ record {
+   Cd: opt Authorisation1Code;
+   Prtry: opt text;
+ };
+type AmountType3Choice = 
+ record {
+   EqvtAmt: opt EquivalentAmount2;
+   InstdAmt: opt ActiveOrHistoricCurrencyAndAmount;
+ };
+type AddressType2Code = 
+ variant {
+   ADDR;
+   BIZZ;
+   DLVY;
+   HOME;
+   MLTO;
+   PBOX;
+ };
+type ActiveOrHistoricCurrencyAndAmount = 
+ record {
+   Ccy: text;
+   value: float64;
+ };
+type AccountSchemeName1Choice = 
+ record {
+   Cd: opt text;
+   Prtry: opt text;
+ };
+type AccountIdentification4Choice = 
+ record {
+   IBAN: opt text;
+   Othr: opt GenericAccountIdentification1;
+ };
+service : {
+  initiateTransfer: (CustomerCreditTransferInitiationV03) ->
+   (CustomerCreditTransferInitiationV03);
+}

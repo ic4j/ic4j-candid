@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -161,6 +162,11 @@ public final class PojoDeserializer implements ObjectDeserializer {
 			cal.setTime(date);
 			return (T) cal;
 		}
+		
+		// handle Duration
+		if (Duration.class.isAssignableFrom(clazz)) {
+			return (T) org.ic4j.types.Duration.deserialize((Map<Label, Object>) value);
+		}		
 
 		// handle Date like nanosecond timestamp
 		if (Date.class.isAssignableFrom(clazz)) {
@@ -308,8 +314,8 @@ public final class PojoDeserializer implements ObjectDeserializer {
 							.getActualTypeArguments()[0];
 					item = this.getValue(item, nestedClass);
 					
-					if (!IDLType.isDefaultType(nestedClass))
-						item = Optional.ofNullable(item);
+					//if (!IDLType.isDefaultType(nestedClass))
+					//	item = Optional.ofNullable(item);
 				} else if (!IDLType.isDefaultType(typeClass))
 					item = this.getValue(item, typeClass);
 

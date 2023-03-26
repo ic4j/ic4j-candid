@@ -1,0 +1,110 @@
+<message>
+    <AppHdr xmlns='urn:iso:std:iso:20022:tech:xsd:head.001.001.01'
+            xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+        <Fr>
+            <FIId>
+                <FinInstnId>
+                    <BICFI>ABCDUS33XXX</BICFI>
+                </FinInstnId>
+            </FIId>
+        </Fr>
+        <To>
+            <FIId>
+                <FinInstnId>
+                    <BICFI>EFGHUS33XXX</BICFI>
+                </FinInstnId>
+            </FIId>
+        </To>
+        <BizMsgIdr>12312312312</BizMsgIdr>
+        <MsgDefIdr>pain.001.001.03</MsgDefIdr>
+        <CreDt>2019-10-19T20:53:13Z</CreDt>
+        <PssblDplct>false</PssblDplct>
+    </AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03 pain.001.001.03.xsd">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>Message-ID-4711</MsgId>
+      <CreDtTm>2010-11-11T09:30:47.000Z</CreDtTm>
+      <NbOfTxs>2</NbOfTxs>
+      <InitgPty>
+        <Nm>Initiator Name</Nm>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>Payment-Information-ID-4711</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <BtchBookg>true</BtchBookg>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>6655.86</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2010-11-25</ReqdExctnDt>
+      <Dbtr>
+        <Nm>Debtor Name</Nm>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>DE87200500001234567890</IBAN>
+        </Id>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <BIC>BANKDEFFXXX</BIC>
+        </FinInstnId>
+      </DbtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>OriginatorID1234</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">6543.14</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>SPUEDE2UXXX</BIC>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>Creditor Name</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>DE21500500009876543210</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>Unstructured Remittance Information</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>OriginatorID1235</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="EUR">112.72</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>SPUEDE2UXXX</BIC>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>Other Creditor Name</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>DE21500500001234567897</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>Unstructured Remittance Information</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>
+</message>

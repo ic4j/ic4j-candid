@@ -19,6 +19,7 @@ package org.ic4j.candid.pojo;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -175,6 +176,12 @@ public final class PojoSerializer implements ObjectSerializer {
 				return IDLValue.create(value,Type.INT);
 			}
 			
+			// handle Duration 
+			if(value instanceof Duration)
+			{			
+				return org.ic4j.types.Duration.serialize((Duration) value);
+			}			
+			
 			// handle Date like nanosecond timestamp
 			if(value instanceof Date)
 			{
@@ -291,8 +298,26 @@ public final class PojoSerializer implements ObjectSerializer {
 				continue;
 			}
 			
-			boolean isArray = typeClass.isArray();
-			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
+			boolean isArray = false;
+			
+			// handle List like array
+			if (List.class.isAssignableFrom(typeClass))
+			{
+				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				isArray = true;
+				
+				if (item != null)
+					item = ((List) item).toArray();
+			}
+			else			
+				isArray = typeClass.isArray();
+			
+			boolean isOptional = false;
+			if(Optional.class.isAssignableFrom(typeClass))
+			{
+				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				isOptional = true;
+			}
 			
 			if(field.isAnnotationPresent(org.ic4j.candid.annotations.Field.class))
 				fieldType = IDLType.createType(field.getAnnotation(org.ic4j.candid.annotations.Field.class).value());
@@ -355,7 +380,7 @@ public final class PojoSerializer implements ObjectSerializer {
 						innerIDLType = idlType.getInnerType();
 					
 					
-					fieldType = this.getIDLType(typeClass.getComponentType());
+					fieldType = PojoUtils.getIDLType(typeClass.getComponentType());
 					for(int i = 0; i < nestedArray.length; i++)
 					{
 						Object nestedValue = nestedArray[i];
@@ -411,6 +436,9 @@ public final class PojoSerializer implements ObjectSerializer {
 			}else if(isArray)
 			{
 				// handle arrays , not record types
+				
+				if(isOptional)
+					fieldType = IDLType.createType(Type.OPT, fieldType);
 				
 				if(idlType != null && idlType.getType() == Type.VEC && idlType.getInnerType() != null)
 					fieldType = idlType.getInnerType();
@@ -472,180 +500,4 @@ public final class PojoSerializer implements ObjectSerializer {
 		return idlValue;
 	}
 	
-	public static IDLType getIDLType(Class valueClass)
-	{
-		// handle null values
-		if(valueClass == null)
-			return IDLType.createType(Type.NULL);
-		
-		if(IDLType.isDefaultType(valueClass))
-			return IDLType.createType(valueClass);	
-		
-		if(Service.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.SERVICE);
-		
-		if(Func.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.FUNC);		
-		
-		if(Optional.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.OPT);
-		
-		if(List.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.VEC);		
-		
-		if(GregorianCalendar.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.INT);
-		
-		if(Date.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.INT);		
-
-		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
-
-		Field[] fields = valueClass.getDeclaredFields();		
-		
-		for(Field field : fields)
-		{
-			if(field.isAnnotationPresent(Ignore.class))
-				continue;
-			
-			if(field.isEnumConstant())
-				continue;			
-			
-			String name = field.getName();
-			if(name.startsWith("this$"))
-				continue;
-			
-			if(name.startsWith("$VALUES"))
-				continue;			
-			
-			if(name.startsWith("ENUM$VALUES"))
-				continue;			
-			
-			Class typeClass = field.getType();	
-			
-			IDLType fieldType = getIDLType(typeClass);
-			
-			if(field.isAnnotationPresent(Name.class))
-				name = field.getAnnotation(Name.class).value();
-			
-			Label label;
-			if (field.isAnnotationPresent(Id.class))
-			{
-				int id = field.getAnnotation(Id.class).value();
-				label = Label.createIdLabel((long) id);
-			}
-			else
-				label = Label.createNamedLabel((String)name);			
-						
-			boolean isArray = typeClass.isArray();
-			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
-			
-			if(field.isAnnotationPresent(org.ic4j.candid.annotations.Field.class))
-				fieldType = IDLType.createType(field.getAnnotation(org.ic4j.candid.annotations.Field.class).value());
-			else if(IDLType.isDefaultType(typeClass) || GregorianCalendar.class.isAssignableFrom(typeClass) || Date.class.isAssignableFrom(typeClass)
-					|| Func.class.isAssignableFrom(typeClass) || Service.class.isAssignableFrom(typeClass))
-			{
-				// if we do not specify type in annotation and type is one of default
-						
-				// handle Func type
-				if(fieldType.getType() == Type.FUNC)
-				{
-					if (field.isAnnotationPresent(Modes.class))
-					{
-						Mode[] modes = field.getAnnotation(Modes.class).value();
-						
-						if(modes.length > 0)
-						{
-							fieldType.modes.add(modes[0]);
-						}
-					}
-				}
-				typeMap.put(label, fieldType);	
-				
-				continue;
-			}
-			else if(List.class.isAssignableFrom(typeClass)) 
-			{	
-				isArray = true;
-				typeClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
-				
-				fieldType = getIDLType(typeClass);
-			}			
-			
-			// do nested type introspection if type is RECORD		
-			if(fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT)
-			{
-				String className = typeClass.getSimpleName();
-				
-				// handle RECORD arrays
-				if(isArray)
-				{
-					fieldType.setName(className);
-					fieldType = IDLType.createType(Type.VEC, fieldType);
-				}
-				else
-					fieldType.setName(className);
-
-			}else if(isArray)
-			{
-				// handle arrays , not record types
-				fieldType = IDLType.createType(Type.VEC, fieldType);
-			}else if(isOptional)
-			{
-				// handle Optional, not record types
-				
-				fieldType = IDLType.createType(Type.OPT, fieldType);
-			}
-			
-			// handle Func type
-			if(fieldType.getType() == Type.FUNC)
-			{
-				if (field.isAnnotationPresent(Modes.class))
-				{
-					Mode[] modes = field.getAnnotation(Modes.class).value();
-					
-					if(modes.length > 0)
-					{
-						fieldType.modes.add(modes[0]);
-					}
-				}
-			}
-			
-			typeMap.put(label, fieldType);	
-
-		}	
-		
-		IDLType idlType;
-		
-		if(valueClass.isEnum()) 
-		{
-			Class<Enum> enumClass = (Class<Enum>)valueClass;
-			Enum[] constants = enumClass.getEnumConstants();
-			
-			for (Enum constant : constants) {
-				String name = constant.name();
-				
-				try {
-					if (enumClass.getField(name).isAnnotationPresent(Name.class))
-						name = enumClass.getField(name).getAnnotation(Name.class).value();					
-				} catch (NoSuchFieldException | SecurityException e) {
-					continue;
-				}
-				
-				Label namedLabel = Label.createNamedLabel(name);
-
-				if (!typeMap.containsKey(namedLabel))
-					typeMap.put(namedLabel, null);
-			}			
-			idlType = IDLType.createType(Type.VARIANT, typeMap);
-		}
-		else
-			idlType = IDLType.createType(Type.RECORD, typeMap);
-		
-		idlType.setName(valueClass.getSimpleName());
-		
-		return idlType;		
-	}
-	
-
 }

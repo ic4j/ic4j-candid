@@ -30,12 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.ic4j.candid.parser.IDLType;
@@ -44,6 +47,7 @@ import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 import org.ic4j.types.Principal;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.ic4j.candid.CandidError;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectDeserializer;
@@ -71,10 +75,7 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 
 		if (idlValue == null)
 			return null;
-
-		if (idlValue.getType().isPrimitive()) {
-			return idlValue.getValue();
-		}
+		
 
 		// handle OPT
 		if (idlValue.getType() == Type.OPT) {
@@ -131,6 +132,21 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 	<T> T getValue(Object value, Class<T> clazz) {
 		if (value == null)
 			return null;
+		
+		if(clazz == null)
+			clazz = (Class<T>) value.getClass();
+		
+		if(JAXBElement.class.isAssignableFrom(clazz) )
+		{
+			try {
+				JAXBElement jaxbValue = (JAXBElement) clazz.newInstance();
+				value = this.getValue(value, jaxbValue.getDeclaredType());
+				jaxbValue.setValue(value);
+				return (T) jaxbValue;
+			} catch (InstantiationException | IllegalAccessException e) {
+				return null;
+			}
+		}
 
 		// handle XMLGregorianCalendar like nanosecond timestamp
 		if (XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
@@ -150,6 +166,16 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 			}
 		}
 		
+		// handle Duration
+		if (Duration.class.isAssignableFrom(clazz)) {
+			return (T) org.ic4j.types.Duration.deserializeXML((Map<Label, Object>) value);
+		}
+		
+		// handle float as double, Motoko does not support Float32	
+		if(Float.class.isAssignableFrom(clazz) && value instanceof Double)
+		{
+			value = ((Double)value).floatValue();
+		}		
 
 		if (IDLType.isPrimitiveType(value.getClass()))
 			return (T) value;
@@ -219,7 +245,7 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 				}
 			}
 
-			Field[] fields = clazz.getDeclaredFields();
+			Field[] fields = IDLUtils.getAllFields(clazz);
 
 			for (Field field : fields) {
 				if (field.isAnnotationPresent(XmlTransient.class))
@@ -240,9 +266,19 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 				if (name.startsWith("ENUM$VALUES"))
 					continue;
 
-				Class typeClass = field.getType();
+				Class fieldClass = field.getType();
+				
+				if(fieldClass.isPrimitive())
+					fieldClass = ClassUtils.primitiveToWrapper(fieldClass);
 				
 				boolean isOptional = false;
+				if(Optional.class.isAssignableFrom(fieldClass))
+				{
+					fieldClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+					isOptional = true;
+				}
+				
+				boolean isRequired = true;
 
 				if (field.isAnnotationPresent(XmlElement.class)) {
 					XmlElement xmlElement = field.getAnnotation(XmlElement.class);
@@ -253,7 +289,19 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 						name = xmlName;
 					
 					if(!xmlElement.required())
-						isOptional = true;
+						isRequired = false;
+				}
+				
+				if (field.isAnnotationPresent(XmlElementRef.class)) {
+					XmlElementRef xmlElementRef = field.getAnnotation(XmlElementRef.class);
+
+					String xmlName = xmlElementRef.name();
+
+					if (xmlName != null)
+						name = xmlName;
+					
+					if(!xmlElementRef.required())
+						isRequired = false;
 				}
 
 				if (field.isAnnotationPresent(XmlAttribute.class)) {
@@ -265,21 +313,24 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 						name = xmlName;
 					
 					if(!xmlAttribute.required())
-						isOptional = true;					
+						isRequired = false;				
 				}
 
 				Label label = Label.createNamedLabel(name);
 
 				Object item = valueMap.get(label);
 				
-				if(isOptional && !Optional.class.isAssignableFrom(typeClass) && item instanceof Optional)
+				if(!isRequired && item != null && item instanceof Optional)
+					item = ((Optional)item).orElse(null);
+				
+				if(isOptional && !Optional.class.isAssignableFrom(fieldClass) && item instanceof Optional)
 					item = ((Optional)item).orElse(null);
 				
 				// handle BigDecimal like Double
-				if (item != null && BigDecimal.class.isAssignableFrom(typeClass)) 	
+				if (item != null && BigDecimal.class.isAssignableFrom(fieldClass)) 	
 					item = BigDecimal.valueOf((double) item).stripTrailingZeros();
 
-				if (List.class.isAssignableFrom(typeClass)) {
+				if (List.class.isAssignableFrom(fieldClass)) {
 					if (item != null && item.getClass().isArray()) {
 						Class nestedClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
 						
@@ -294,35 +345,41 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 						item = arrayValue;
 					}
 
-				}else if (Optional.class.isAssignableFrom(typeClass)) {
+				}else if (Optional.class.isAssignableFrom(fieldClass)) {
 					Class nestedClass = (Class) ((ParameterizedType) field.getGenericType())
 							.getActualTypeArguments()[0];
 					item = this.getValue(item, nestedClass);
 					
 					if (!IDLType.isDefaultType(nestedClass))
 						item = Optional.ofNullable(item);
-				} else if (!IDLType.isDefaultType(typeClass))
-					item = this.getValue(item, typeClass);
+				} else if (!IDLType.isDefaultType(fieldClass))
+					item = this.getValue(item, fieldClass);
 
 				try {
 					// convert to proper type
 					if (item != null) {
 
 						if (item.getClass().isArray()) {
-							item = IDLUtils.toArray(typeClass, (Object[]) item);
+							item = IDLUtils.toArray(fieldClass, (Object[]) item);
 							// handle binary
-							if (typeClass.isAssignableFrom(byte[].class))
+							if (fieldClass.isAssignableFrom(byte[].class))
 								item = ArrayUtils.toPrimitive((Byte[]) item);
 
 						} else {
 							if (item.getClass().isAssignableFrom(BigInteger.class)
-									&& !typeClass.isAssignableFrom(BigInteger.class))
-								item = IDLUtils.bigIntToObject((BigInteger) item, typeClass);
+									&& !fieldClass.isAssignableFrom(BigInteger.class))
+								item = IDLUtils.bigIntToObject((BigInteger) item, fieldClass);
 							if (item.getClass().isAssignableFrom(Principal.class)
-									&& !typeClass.isAssignableFrom(Principal.class))
-								item = IDLUtils.principalToObject((Principal) item, typeClass);
+									&& !fieldClass.isAssignableFrom(Principal.class))
+								item = IDLUtils.principalToObject((Principal) item, fieldClass);
 						}
 					}
+					// handle float as double, Motoko does not support Float32		
+					if(fieldClass.isAssignableFrom(Float.class) && item instanceof Double)
+					{
+						item = ((Double)item).floatValue();
+					}
+					
 					field.set(pojoValue, item);
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					continue;
@@ -344,10 +401,23 @@ public final class JAXBDeserializer implements ObjectDeserializer {
 			
 			String name = enumName;
 			
-			try {
-				if (clazz.getField(name).isAnnotationPresent(XmlEnumValue.class))
-					name = clazz.getField(name).getAnnotation(XmlEnumValue.class).value();					
-			} catch (NoSuchFieldException | SecurityException e) {
+			if(name == null)
+				continue;
+
+			try {			
+				Field enumField = clazz.getDeclaredField(name);
+						
+				if(enumField == null)
+					continue;
+			
+
+				if (enumField.isAnnotationPresent(XmlEnumValue.class))
+				{
+					name = enumField.getAnnotation(XmlEnumValue.class).value();	
+				
+					name = JAXBUtils.replaceSpecialChars(name);
+				}					
+			} catch (SecurityException | NoSuchFieldException e) {
 			}
 
 			Label namedLabel = Label.createNamedLabel(name);

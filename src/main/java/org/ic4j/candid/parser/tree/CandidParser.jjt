@@ -95,13 +95,13 @@ void SimpleType() :
 void OptType() :
 {}
 {
-	< OPT> (SimpleType() | VecType() | FuncType()  | ServiceType() | RecordType() | VariantType() | Identifier())
+	< OPT> (SimpleType() | OptType() | VecType() | FuncType()  | ServiceType() | RecordType() | VariantType() | Identifier())
 }
 
 void VecType() :
 {}
 {
-	< VEC> (SimpleType() |  OptType() | VecType()  | ServiceType() | RecordType() | VariantType() | Identifier())
+	< VEC> (SimpleType() | OptType() | VecType() | FuncType() | ServiceType() | RecordType() | VariantType() | Identifier())
 }
 
 void FuncType() :
@@ -135,7 +135,7 @@ void Oneway() :
 void RecordType() :
 {}
 {
-	< RECORD> "{" ((RecordSubType() | SimpleType()) (";")?)* "}"
+	< RECORD> "{" ((RecordSubType()) (";")?)* "}"
 }
 
 void VariantType() :
@@ -146,14 +146,13 @@ void VariantType() :
 
 void RecordSubType() :
 {}
-{
-  (Identifier() ) (":"( SimpleType() | OptType()| VecType()| FuncType()| ServiceType() | RecordType() | VariantType() |  Identifier() ))? 
+{    (Identifier() | SimpleType() | OptType() | VecType() | FuncType() | ServiceType() | RecordType() | VariantType())  ( ":" ( SimpleType() | OptType() | VecType() | FuncType() | ServiceType() | RecordType() | VariantType() |  Identifier()))?
 }
 
 void VariantSubType() :
 {}
 {
-  Identifier() (":" (SimpleType() | OptType() | VecType() | FuncType()| ServiceType() | RecordType() | VariantType() | Identifier()))? 
+  Identifier() (":" (SimpleType() | OptType() | VecType() | FuncType() | ServiceType() | RecordType() | VariantType() | Identifier()))? 
 }
 
 void ServiceExpression() :

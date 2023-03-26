@@ -1,11 +1,15 @@
 package org.ic4j.candid;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.types.Principal;
 
 public class IDLUtils {
@@ -157,5 +161,28 @@ public class IDLUtils {
 		throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Cannot convert Java class " + value.getClass().getName() + " to PRINCIPAL");
 		
 	}	
+	
+    public static Field[] getAllFields(Class<?> type) {
+    	if(type.isEnum())
+    		return type.getDeclaredFields();
+    	
+        List<Field> fields = new ArrayList<Field>();
+        for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+            fields.addAll(Arrays.asList(c.getDeclaredFields()));
+        }
+        return (Field[]) fields.toArray(new Field[0]);
+    }
+
+	public static Field getClassField(Class<?> clazz, String name)
+	{
+		Field[] fields =getAllFields(clazz);
+		
+		for(Field field : fields)
+			if(name.equals(field.getName()))
+					return field;
+
+		return null;		
+	}
+	
 
 }

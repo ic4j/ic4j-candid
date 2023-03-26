@@ -10,6 +10,7 @@ import javax.xml.bind.JAXBException;
 
 import org.ic4j.candid.jaxb.JAXBDeserializer;
 import org.ic4j.candid.jaxb.JAXBSerializer;
+import org.ic4j.candid.jaxb.JAXBUtils;
 import org.ic4j.candid.parser.IDLArgs;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
@@ -17,9 +18,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
+import com.prowidesoftware.swift.model.mx.AppHdr;
 import com.prowidesoftware.swift.model.mx.MxPacs00800107;
 import com.prowidesoftware.swift.model.mx.MxPacs00900109;
+import com.prowidesoftware.swift.model.mx.MxPain00100103;
 import com.prowidesoftware.swift.model.mx.dic.ActiveCurrencyAndAmount;
+import com.prowidesoftware.swift.model.mx.dic.CustomerCreditTransferInitiationV03;
 import com.prowidesoftware.swift.model.mx.dic.FIToFICustomerCreditTransferV07;
 import com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionCreditTransferV09;
 import com.prowidesoftware.swift.model.mx.dic.GroupHeader70;
@@ -30,7 +34,8 @@ import com.prowidesoftware.swift.utils.Lib;
 public final class JAXBTest extends CandidAssert {
 	static final String SIMPLE_NODE_FILE = "SimpleNode.xml";
 	static final String COMPLEX_NODE_FILE = "ComplexNode.xml";
-	static final String TRADE_ARRAY_NODE_FILE = "TradeArrayNode.xml";
+	static final String TRADE_ARRAY_NODE_FILE = "TradeArrayNode.xml";	
+	static final String SWIFT_XML_NODE_FILE = "CustomerCreditTransferInitiationV03.xml";
 
 
 	static {
@@ -80,11 +85,11 @@ public final class JAXBTest extends CandidAssert {
 			
 			JAXBSerializer serializer =JAXBSerializer.create();
 			
-			IDLType type = serializer.getIDLType(GroupHeader70.class);
+			IDLType type = JAXBUtils.getIDLType(GroupHeader70.class);
 			
-			type = serializer.getIDLType(TaxRecordPeriod1Code.class);
+			type = JAXBUtils.getIDLType(TaxRecordPeriod1Code.class);
 					
-			type = serializer.getIDLType(FIToFICustomerCreditTransferV07.class);
+			type = JAXBUtils.getIDLType(FIToFICustomerCreditTransferV07.class);
 			
 		       // parse the XML message content from a resource file
 	        MxPacs00800107 mx = MxPacs00800107.parse(Lib.readResource("pacs.008.001.07.xml"));
@@ -147,6 +152,7 @@ public final class JAXBTest extends CandidAssert {
 			
 			buf = idlArgs.toBytes();
 			
+			
 			FinancialInstitutionCreditTransferV09 financialInstitutionTransferResult = IDLArgs.fromBytes(buf).getArgs().get(0)
 					.getValue(JAXBDeserializer.create(), FinancialInstitutionCreditTransferV09.class);
 
@@ -162,7 +168,20 @@ public final class JAXBTest extends CandidAssert {
 	        
 	        LOG.info(xmlContentAfter);	   
 	        
-	        Assertions.assertEquals(xmlContentBefore, xmlContentAfter);		        
+	        Assertions.assertEquals(xmlContentBefore, xmlContentAfter);	
+	        
+			MxPain00100103 mx3 = MxPain00100103.parse(Lib.readResource("pain.001.001.03.xml"));
+			
+			CustomerCreditTransferInitiationV03 customerTransfer = mx3.getCstmrCdtTrfInitn(); 
+			
+			idlValue = IDLValue.create(customerTransfer, JAXBSerializer.create());
+			args = new ArrayList<IDLValue>();
+			args.add(idlValue);
+
+			idlArgs = IDLArgs.create(args);
+			
+			buf = idlArgs.toBytes();
+			
 					
 		} catch (JAXBException | IOException e) {
 			LOG.error(e.getLocalizedMessage(), e);

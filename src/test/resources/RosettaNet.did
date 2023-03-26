@@ -1,0 +1,2105 @@
+type UnitOfMeasureTypeV01_04 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type TransportationEventTypeV02_29 = 
+ record {
+   DateTimePeriod: opt DateTimePeriodTypeV01_03;
+   TransportEvent: TransportEventTypeV01_03;
+   schemaVersion: opt text;
+ };
+type TransportEventTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: TransportEventContentTypeV01_03;
+ };
+type TransportEventContentTypeV01_03 = 
+ variant {
+   DOC;
+   PIC;
+   SHP;
+ };
+type TpirPipIdentificationTypeV01_23 = 
+ record {
+   FileType: opt TPIRFileTypeTypeV01_01;
+   PartnerId: text;
+   PipIdentifier: text;
+   PipVersion: text;
+   TpirBusinessProcessIdentifier: opt text;
+   TpirPipVersion: text;
+   Uri: opt text;
+   schemaVersion: opt text;
+ };
+type TaxExemptionTypeV02_29 = 
+ record {
+   CertificationIdentifier: opt text;
+   Mode: opt text;
+   TaxExemptionCode: TaxExemptionCodeTypeV01_03;
+   schemaVersion: opt text;
+ };
+type TaxExemptionCodeTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: TaxExemptionCodeContentTypeV01_03;
+ };
+type TaxExemptionCodeContentTypeV01_03 = 
+ variant {
+   AGR;
+   AQT;
+   BTL;
+   CPT;
+   CRT;
+   CSM;
+   DIS;
+   DIV;
+   DPI;
+   DRD;
+   EFE;
+   EFR;
+   EVD;
+   EVI;
+   EXC;
+   FAD;
+   FFE;
+   FTZ;
+   GND;
+   GST;
+   HOM;
+   ICT;
+   IET;
+   IFS;
+   IGC;
+   IMM;
+   ITA;
+   ITS;
+   LAE;
+   LFC;
+   LFV;
+   LOF;
+   LON;
+   LOS;
+   LPT;
+   MAE;
+   MFE;
+   MNE;
+   MPT;
+   NDF;
+   NE1;
+   NE2;
+   NFR;
+   NOH;
+   NOT;
+   NTL;
+   O65;
+   OLR;
+   OPA;
+   OPS;
+   OPT;
+   OSV;
+   OTZ;
+   PSL;
+   PST;
+   REE;
+   SEG;
+   SFD;
+   SPD;
+   SPT;
+   SRG;
+   TNT;
+   TOE;
+   TOS;
+   TPT;
+   USE;
+   USG;
+   WOF;
+ };
+type TaxExemptStatusTypeV02_29 = 
+ record {
+   IsTaxExempt: opt bool;
+   TaxExemption: opt TaxExemptionTypeV02_29;
+   schemaVersion: opt text;
+ };
+type TPIRFileTypeTypeV01_01 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: TPIRFileTypeContentTypeV01_01;
+ };
+type TPIRFileTypeContentTypeV01_01 = 
+ variant {
+   PDF;
+   XDP;
+   XML;
+ };
+type StandardDocumentIdentificationTypeV01_23 = 
+ record {
+   Standard: opt text;
+   Version: text;
+   schemaVersion: opt text;
+ };
+type SpecifiedPartnerDescriptionTypeV01_16 = 
+ record {
+   SpecifiedFullPartner: opt SpecifiedFullPartnerTypeV01_16;
+   SpecifiedIntermittentPartner: opt SpecifiedIntermittentPartnerTypeV01_16;
+   SpecifiedKnownPartnerContact: opt SpecifiedKnownPartnerContactTypeV01_16;
+   SpecifiedNewPartner: opt SpecifiedNewPartnerTypeV01_16;
+   schemaVersion: opt text;
+ };
+type SpecifiedNewPartnerTypeV01_16 = 
+ record {
+   ContactInformation: vec ContactInformationTypeV01_04;
+   Location: LocationTypeV01_04;
+   PartnerIdentification: vec PartnerIdentificationTypeV01_16;
+   PhysicalAddress: PhysicalAddressTypeV01_04;
+   schemaVersion: opt text;
+ };
+type SpecifiedKnownPartnerTypeV01_16 = 
+ record {
+   PartnerIdentification: PartnerIdentificationTypeV01_16;
+   schemaVersion: opt text;
+ };
+type SpecifiedKnownPartnerContactTypeV01_16 = 
+ record {
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   SpecifiedKnownPartner: SpecifiedKnownPartnerTypeV01_16;
+   schemaVersion: opt text;
+ };
+type SpecifiedIntermittentPartnerTypeV01_16 = 
+ record {
+   ContactInformation: ContactInformationTypeV01_04;
+   PhysicalAddress: PhysicalAddressTypeV01_04;
+   schemaVersion: opt text;
+ };
+type SpecifiedFullPartnerTypeV01_16 = 
+ record {
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   Location: opt LocationTypeV01_04;
+   PartnerIdentification: opt vec PartnerIdentificationTypeV01_16;
+   PhysicalAddress: opt PhysicalAddressTypeV01_04;
+   schemaVersion: opt text;
+ };
+type SpecialHandlingTypeV01_04 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type SpecialHandlingInstructionTypeV02_29 = 
+ record {
+   SpecialHandling: opt vec SpecialHandlingTypeV01_04;
+   Text: opt text;
+   schemaVersion: opt text;
+ };
+type SpecialFulfillmentRequestTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: SpecialFulfillmentRequestContentTypeV01_03;
+ };
+type SpecialFulfillmentRequestContentTypeV01_03 = 
+ variant {
+   AQM;
+   BIG;
+   BON;
+   BOO;
+   BOS;
+   COM;
+   CON;
+   CSD;
+   DNP;
+   DNS;
+   EIQ;
+   EPA;
+   FAS;
+   FIK;
+   GUS;
+   IIQ;
+   LPS;
+   LSA;
+   MAP;
+   MUD;
+   MYA;
+   NBO;
+   NOS;
+   NPS;
+   OQB;
+   OQM;
+   OUS;
+   PLS;
+   RAS;
+   REI;
+   RHB;
+   RIP;
+   RQP;
+   RUC;
+   RYI;
+   SA8;
+   SAI;
+   SAS;
+   SBA;
+   SBS;
+   SDS;
+   SFT;
+   SHC;
+   SIA;
+   SIP;
+   SMP;
+   SP1;
+   SP2;
+   SP3;
+   SP4;
+   SP5;
+   SP6;
+   SPR;
+   SPS;
+   SRA;
+   SRN;
+   URP;
+   WAR;
+   WHS;
+ };
+type SpecialDiscountTypeV02_29 = 
+ record {
+   DiscountedPrice: opt ProductPricingTypeV01_17;
+   Identifier: text;
+   Percentage: opt float64;
+   schemaVersion: opt text;
+ };
+type ShippingServiceLevelTypeV01_01 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type ShipmentTermsTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: ShipmentTermsContentTypeV01_03;
+ };
+type ShipmentTermsContentTypeV01_03 = 
+ variant {
+   ADC;
+   ADP;
+   CAA;
+   CAD;
+   CFC;
+   CFR;
+   CIF;
+   CIP;
+   COL;
+   CPT;
+   CRC;
+   CUP;
+   DAF;
+   DDP;
+   DDU;
+   DEQ;
+   DES;
+   EXW;
+   FAS;
+   FCA;
+   FOB;
+   LEC;
+   NOS;
+   PAE;
+   PCC;
+   PIU;
+   PRE;
+   PRS;
+   RFC;
+   RFF;
+   RFS;
+   TPP;
+ };
+type ServiceLineItemTypeV02_05 = 
+ record {
+   AncillaryDocument: opt vec AncillaryDocumentTypeV02_29;
+   BusinessDocumentReference: opt vec BusinessDocumentReferenceTypeV01_12;
+   ContractInformation: opt ContractInformationTypeV02_29;
+   HandlingInstruction: opt text;
+   InstallAt: SpecifiedPartnerDescriptionTypeV01_16;
+   IsRequiredToRespondAtDetailLevel: opt bool;
+   LineNumber: text;
+   ListPrice: opt ProductPricingTypeV01_17;
+   MapReference: opt vec MapReferenceTypeV02_29;
+   MilestoneDate: opt vec MilestoneDateTypeV02_29;
+   OrderPricing: opt vec ProductPricingTypeV01_17;
+   PartnerDescription: opt PartnerDescriptionTypeV01_16;
+   PortalAccess: opt vec PortalAccessTypeV02_29;
+   ProductIdentification: opt ProductIdentificationTypeV01_04;
+   ProductLineNumber: opt text;
+   ProductOrderQuantity: opt OrderQuantityTypeV02_29;
+   ProductSerialIdentifier: opt vec text;
+   PurchaseOrderType: PurchaseOrderTypeTypeV01_05;
+   ServiceIdentification: opt vec text;
+   ServiceLevel: text;
+   ServiceOrderQuantity: OrderQuantityTypeV02_29;
+   ServicePeriod: opt DatePeriodAndDurationTypeV01_17;
+   SpecialDiscount: opt vec SpecialDiscountTypeV02_29;
+   schemaVersion: opt text;
+ };
+type ServiceLineItemByOptionTypeV02_05 = 
+ record {
+   AncillaryDocument: opt vec AncillaryDocumentTypeV02_29;
+   BusinessDocumentReference: opt vec BusinessDocumentReferenceTypeV01_12;
+   ContractInformation: opt ContractInformationTypeV02_29;
+   ExpiringBy: opt DatePeriodAndDurationTypeV01_17;
+   HandlingInstruction: opt text;
+   IsRequiredToRespondAtDetailLevel: opt bool;
+   LineNumber: text;
+   ListPrice: opt ProductPricingTypeV01_17;
+   MapReference: opt vec MapReferenceTypeV02_29;
+   MilestoneDate: opt vec MilestoneDateTypeV02_29;
+   OrderPricing: opt vec ProductPricingTypeV01_17;
+   PartnerDescription: opt vec PartnerDescriptionTypeV01_16;
+   PortalAccess: opt vec PortalAccessTypeV02_29;
+   ProductIdentification: opt ProductIdentificationTypeV01_04;
+   ProductLineNumber: opt text;
+   ProductOrderQuantity: opt OrderQuantityTypeV02_29;
+   ProductSerialIdentifier: opt vec text;
+   PurchaseOrderType: PurchaseOrderTypeTypeV01_05;
+   RequestOption: RequestOptionTypeV01_01;
+   ServiceIdentification: opt vec text;
+   ServiceLevel: opt text;
+   ServiceOrderQuantity: OrderQuantityTypeV02_29;
+   ServicePeriod: opt DatePeriodAndDurationTypeV01_17;
+   SpecialDiscount: opt SpecialDiscountTypeV02_29;
+   schemaVersion: opt text;
+ };
+type SenderTypeV01_23 = 
+ record {
+   BusinessServiceInformation: opt BusinessServiceInformationTypeV01_23;
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   PartnerIdentification: PartnerIdentificationTypeV01_16;
+   schemaVersion: opt text;
+ };
+type SecondaryBuyerTypeV02_29 = 
+ record {
+   Identifier: opt text;
+   PartnerDescription: PartnerDescriptionTypeV01_16;
+   schemaVersion: opt text;
+ };
+type RequestingDocumentInformationTypeV01_23 = 
+ record {
+   BusinessProcessInstanceIdentifier: opt text;
+   RequestingDocumentCreationDateTime: opt int;
+   RequestingDocumentInstanceIdentifier: text;
+   ResponseDateTime: opt int;
+   schemaVersion: opt text;
+ };
+type RequestOptionTypeV01_01 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: RequestOptionContentTypeV01_01;
+ };
+type RequestOptionContentTypeV01_01 = 
+ variant {
+   CON;
+   PRO;
+   SIT;
+   WQO;
+ };
+type ReceiverTypeV01_23 = 
+ record {
+   BusinessServiceInformation: opt BusinessServiceInformationTypeV01_23;
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   PartnerIdentification: PartnerIdentificationTypeV01_16;
+   schemaVersion: opt text;
+ };
+type PurchaseOrderTypeV02_05 = 
+ record {
+   AccountDescription: opt AccountDescriptionTypeV02_29;
+   AncillaryDocument: opt vec AncillaryDocumentTypeV02_29;
+   BuildingSecurityAccessCode: opt text;
+   BusinessDocumentReference: opt vec BusinessDocumentReferenceTypeV01_12;
+   Comments: opt text;
+   ContractInformation: opt vec ContractInformationTypeV02_29;
+   FinancingTerms: opt vec FinancingTermsTypeV02_29;
+   GovernmentContractIdentifier: opt BusinessDocumentReferenceTypeV01_12;
+   GovernmentPriorityRating: opt GovernmentPriorityRatingTypeV01_03;
+   Information: opt text;
+   IsDropShip: opt bool;
+   IsRequiredToRespondAtDetailLevel: opt bool;
+   ListPrice: opt ProductPricingTypeV01_17;
+   Location: opt vec LocationTypeV01_04;
+   MapReference: opt vec MapReferenceTypeV02_29;
+   MilestoneDate: opt vec MilestoneDateTypeV02_29;
+   OrderLineItem: vec OrderLineItemTypeV02_05;
+   OrderShippingInformation: opt OrderShippingInformationTypeV02_29;
+   PartnerDescription: opt vec PartnerDescriptionTypeV01_16;
+   PortalAccess: opt vec PortalAccessTypeV02_29;
+   PurchaseOrderFillPriority: opt PurchaseOrderFillPriorityTypeV01_03;
+   PurchaseOrderType: vec PurchaseOrderTypeTypeV01_05;
+   RequestedEvent: opt TransportationEventTypeV02_29;
+   SecondaryBuyer: opt SecondaryBuyerTypeV02_29;
+   SpecialDiscount: opt vec SpecialDiscountTypeV02_29;
+   TaxExemptStatus: opt TaxExemptStatusTypeV02_29;
+   TotalAmount: opt MonetaryAmountTypeV01_17;
+   schemaVersion: opt text;
+ };
+type PurchaseOrderTypeTypeV01_05 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: PurchaseOrderTypeContentTypeV01_05;
+ };
+type PurchaseOrderTypeContentTypeV01_05 = 
+ variant {
+   ADD;
+   BLA;
+   CCO;
+   COO;
+   DCO;
+   DNS;
+   DSO;
+   ERS;
+   ESD;
+   EVA;
+   EXO;
+   FUL;
+   GOV;
+   MSCP;
+   NCO;
+   NON;
+   PAP;
+   PRD;
+   QUO;
+   RCO;
+   REP;
+   RPD;
+   RPN;
+   RWK;
+   SAM;
+   SIT;
+   SSO;
+   STD;
+   SVC;
+   UCO;
+   WDW;
+   WRM;
+   WRP;
+ };
+type PurchaseOrderRequestTypeV02_05 = 
+ record {
+   DocumentHeader: opt DocumentHeaderTypeV01_23;
+   PurchaseOrder: PurchaseOrderTypeV02_05;
+   schemaVersion: opt text;
+ };
+type PurchaseOrderFillPriorityTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: PurchaseOrderFillPriorityContentTypeV01_03;
+ };
+type PurchaseOrderFillPriorityContentTypeV01_03 = 
+ variant {
+   HIG;
+   LOW;
+   MED;
+   PR1;
+   PR2;
+   PR3;
+   PR4;
+   PR5;
+   PR6;
+   PR7;
+   PR8;
+   PR9;
+ };
+type ProductSubLineItemTypeV02_05 = 
+ record {
+   AncillaryDocument: opt vec AncillaryDocumentTypeV02_29;
+   Comments: opt text;
+   ContractInformation: opt vec ContractInformationTypeV02_29;
+   CountryOfOrigin: opt CountryTypeV01_02;
+   CustomerInformation: opt vec CustomerInformationTypeV02_29;
+   ExpediteReferenceIdentifier: opt text;
+   Information: opt text;
+   InstallAtSubLine: opt SpecifiedKnownPartnerContactTypeV01_16;
+   IsDropShip: opt bool;
+   MapReference: opt vec MapReferenceTypeV02_29;
+   MilestoneDate: opt vec MilestoneDateTypeV02_29;
+   OrderQuantity: OrderQuantityTypeV02_29;
+   OrderShippingInformation: opt OrderShippingInformationTypeV02_29;
+   PartnerDescription: opt PartnerDescriptionTypeV01_16;
+   PortalAccess: opt vec PortalAccessTypeV02_29;
+   PurchaseOrderFillPriority: opt PurchaseOrderFillPriorityTypeV01_03;
+   RequestedEvent: TransportationEventTypeV02_29;
+   RequestedShipFrom: opt vec LocationTypeV01_04;
+   RequestedUnitPrice: opt MonetaryAmountTypeV01_17;
+   ShipToPartnerSubLine: opt SpecifiedFullPartnerTypeV01_16;
+   SubLineItem: text;
+   UnitOfMeasure: UnitOfMeasureTypeV01_04;
+   schemaVersion: opt text;
+ };
+type ProductPricingTypeV01_17 = 
+ record {
+   MonetaryAmount: MonetaryAmountTypeV01_17;
+   PricingTypeCode: PricingTypeCodeTypeV01_04;
+   schemaVersion: opt text;
+ };
+type ProductLineItemTypeV02_05 = 
+ record {
+   AncillaryDocument: opt vec AncillaryDocumentTypeV02_29;
+   BusinessDocumentReference: opt vec BusinessDocumentReferenceTypeV01_12;
+   Comments: opt text;
+   ContractInformation: opt vec ContractInformationTypeV02_29;
+   CountryOfOrigin: opt CountryTypeV01_02;
+   CustomerInformation: opt vec CustomerInformationTypeV02_29;
+   ExpediteReferenceIdentifier: opt text;
+   Information: opt text;
+   InstallAtPartnerLine: opt SpecifiedNewPartnerTypeV01_16;
+   IsDropShip: opt bool;
+   IsRequiredToRespondAtDetailLevel: opt bool;
+   LineNumber: text;
+   ListPrice: opt ProductPricingTypeV01_17;
+   MapReference: opt vec MapReferenceTypeV02_29;
+   MilestoneDate: opt vec MilestoneDateTypeV02_29;
+   OrderQuantity: OrderQuantityTypeV02_29;
+   OrderShippingInformation: opt OrderShippingInformationTypeV02_29;
+   PartnerDescription: opt PartnerDescriptionTypeV01_16;
+   PortalAccess: opt vec PortalAccessTypeV02_29;
+   ProductIdentification: ProductIdentificationTypeV01_04;
+   ProductSubLineItem: opt vec ProductSubLineItemTypeV02_05;
+   PurchaseOrderFillPriority: opt PurchaseOrderFillPriorityTypeV01_03;
+   RequestedEvent: TransportationEventTypeV02_29;
+   RequestedShipFrom: opt vec LocationTypeV01_04;
+   RequestedUnitPrice: opt MonetaryAmountTypeV01_17;
+   ShipTo: SpecifiedPartnerDescriptionTypeV01_16;
+   SpecialDiscount: opt vec SpecialDiscountTypeV02_29;
+   TaxExemptStatus: opt TaxExemptStatusTypeV02_29;
+   TotalLineItemAmount: opt MonetaryAmountTypeV01_17;
+   UnitOfMeasure: UnitOfMeasureTypeV01_04;
+   schemaVersion: opt text;
+ };
+type ProductIdentificationTypeV01_04 = 
+ record {
+   AlternativeIdentifier: opt vec AlternativeIdentifierTypeV01_04;
+   GTIN: opt text;
+   ProductName: opt text;
+   Revision: opt text;
+   schemaVersion: opt text;
+ };
+type ProcessRoleIdentifierTypeV01_11 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: ProcessRoleIdentifierContentTypeV01_11;
+ };
+type ProcessRoleIdentifierContentTypeV01_11 = 
+ variant {
+   ADM;
+   ALT;
+   APP;
+   AUT;
+   BIF;
+   BIT;
+   CBK;
+   CLF;
+   CLM;
+   CNC;
+   COR;
+   COW;
+   CRA;
+   CRE;
+   CSP;
+   CWN;
+   DCE;
+   DCT;
+   DCU;
+   DIS;
+   DLR;
+   DST;
+   FCP;
+   FIA;
+   FIN;
+   FNB;
+   FOR;
+   IMB;
+   INL;
+   INO;
+   ITF;
+   ITL;
+   ITT;
+   LGP;
+   MFG;
+   OWN;
+   PAE;
+   PCW;
+   PNB;
+   PSR;
+   PUR;
+   REA;
+   REC;
+   REQ;
+   RES;
+   RET;
+   REV;
+   RFR;
+   RLS;
+   RMT;
+   RPB;
+   RQT;
+   RSF;
+   RTT;
+   SBF;
+   SBT;
+   SCB;
+   SCP;
+   SCW;
+   SHF;
+   SHT;
+   SLD;
+   SOB;
+   SPL;
+   SPS;
+   SRT;
+   STR;
+   SVA;
+   TFR;
+   TIA;
+   TMT;
+   TRA;
+   TSB;
+   TTR;
+   ULR;
+   USE;
+   UST;
+   WHB;
+ };
+type PricingTypeCodeTypeV01_04 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: PricingTypeCodeContentTypeV01_04;
+ };
+type PricingTypeCodeContentTypeV01_04 = 
+ variant {
+   ACR;
+   ACS;
+   ACT;
+   ANY;
+   ARS;
+   ASP;
+   BPA;
+   BPP;
+   BSH;
+   CAT;
+   CLM;
+   CMC;
+   CMD;
+   CMF;
+   CON;
+   COS;
+   CPL;
+   DBC;
+   DFR;
+   DIS;
+   DPD;
+   DTP;
+   EDU;
+   ERT;
+   EXC;
+   FGM;
+   GEN;
+   HIE;
+   LCL;
+   LGM;
+   LIS;
+   MPR;
+   MRP;
+   MSR;
+   MUS;
+   NPF;
+   OEM;
+   OVP;
+   PED;
+   QUO;
+   RCS;
+   REX;
+   RFB;
+   RIN;
+   RSP;
+   SCE;
+   SEC;
+   SED;
+   SEV;
+   SGM;
+   SPD;
+   SPE;
+   SPL;
+   SRP;
+   STR;
+   THP;
+   TOC;
+ };
+type PortalAccessTypeV02_29 = 
+ record {
+   AuthorizationCode: opt vec text;
+   Url: text;
+   schemaVersion: opt text;
+ };
+type PhysicalAddressTypeV01_04 = 
+ record {
+   AddressLine1: text;
+   AddressLine2: opt text;
+   AddressLine3: opt text;
+   AddressLine4: opt text;
+   AddressLine5: opt text;
+   CityName: text;
+   Country: CountryTypeV01_02;
+   CountrySubdivision: opt CountrySubdivisionTypeV01_02;
+   PostOfficeBox: opt text;
+   PostalCode: opt text;
+   schemaVersion: opt text;
+ };
+type PaymentTermsTypeV02_29 = 
+ record {
+   Discounts: opt vec DiscountsTypeV02_29;
+   NetTerms: NetTermsTypeV02_29;
+   PaymentCondition: opt PaymentConditionTypeV01_03;
+   PercentDue: opt float64;
+   schemaVersion: opt text;
+ };
+type PaymentMethodTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: PaymentMethodContentTypeV01_02;
+ };
+type PaymentMethodContentTypeV01_02 = 
+ variant {
+   ACH;
+   ACR;
+   BAD;
+   BIA;
+   BND;
+   BOE;
+   CAC;
+   CAS;
+   CBB;
+   CCP;
+   CCR;
+   CCW;
+   CDA;
+   CDD;
+   CDP;
+   CDS;
+   CHE;
+   CHIPS;
+   CLH;
+   CPC;
+   CPF;
+   CPP;
+   CRA;
+   CRC;
+   CRE;
+   CTC;
+   CTD;
+   CTP;
+   CTX;
+   CXC;
+   CXD;
+   DBT;
+   DCC;
+   DCD;
+   DCP;
+   DDA;
+   DDP;
+   DEB;
+   DEC;
+   DEM;
+   DID;
+   DPP;
+   DRA;
+   DWO;
+   ECN;
+   EFT;
+   EPS;
+   EXC;
+   FIN;
+   FIO;
+   FPB;
+   FRN;
+   FRR;
+   GRA;
+   INS;
+   JPO;
+   LAP;
+   LEV;
+   LOB;
+   LOC;
+   MOD;
+   MOO;
+   MOR;
+   NPD;
+   NPR;
+   OTH;
+   PAM;
+   PAN;
+   PAS;
+   PBC;
+   PBS;
+   PCC;
+   PCP;
+   PDD;
+   PDP;
+   PIK;
+   PME;
+   PMI;
+   PMN;
+   PNA;
+   PPC;
+   PPD;
+   PPW;
+   PRC;
+   PRN;
+   PVC;
+   PVN;
+   PWT;
+   PYN;
+   RDA;
+   SCC;
+   SCD;
+   SPA;
+   SUA;
+   SWIFT;
+   TGT;
+   TOF;
+   TRC;
+   VIS;
+   WAI;
+   WIT;
+ };
+type PaymentConditionTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: PaymentConditionContentTypeV01_03;
+ };
+type PaymentConditionContentTypeV01_03 = 
+ variant {
+   ACC;
+   CON;
+   REG;
+   REI;
+   SHI;
+ };
+type PartnerIdentificationTypeV01_16 = 
+ record {
+   AlternativeIdentifier: opt vec AlternativeIdentifierTypeV01_04;
+   DUNS: opt text;
+   DUNSPlus4: opt text;
+   GLN: opt text;
+   PartnerName: opt text;
+   schemaVersion: opt text;
+ };
+type PartnerDescriptionTypeV01_16 = 
+ record {
+   FullPartner: opt FullPartnerTypeV01_16;
+   IntermittentPartner: opt IntermittentPartnerTypeV01_16;
+   KnownPartnerContact: opt KnownPartnerContactTypeV01_16;
+   NewPartner: opt NewPartnerTypeV01_16;
+   schemaVersion: opt text;
+ };
+type OrderShippingInformationTypeV02_29 = 
+ record {
+   CarrierInformation: opt CarrierInformationTypeV01_17;
+   FreeOnBoard: opt FreeOnBoardTypeV01_01;
+   PackList: opt text;
+   ShipmentTerms: opt ShipmentTermsTypeV01_03;
+   ShippingServiceLevel: opt ShippingServiceLevelTypeV01_01;
+   SpecialFulfillmentRequest: opt vec SpecialFulfillmentRequestTypeV01_03;
+   SpecialHandlingInstruction: opt SpecialHandlingInstructionTypeV02_29;
+   schemaVersion: opt text;
+ };
+type OrderQuantityTypeV02_29 = 
+ record {
+   RemainingQuantity: opt float64;
+   RequestedQuantity: opt float64;
+   ScheduledShipQuantity: opt float64;
+   TotalReceivedQuantity: opt float64;
+   schemaVersion: opt text;
+ };
+type OrderLineItemTypeV02_05 = 
+ record {
+   ProductLineItem: opt ProductLineItemTypeV02_05;
+   ServiceLineItem: opt ServiceLineItemTypeV02_05;
+   ServiceLineItemByOption: opt ServiceLineItemByOptionTypeV02_05;
+   schemaVersion: opt text;
+ };
+type NewPartnerTypeV01_16 = 
+ record {
+   ContactInformation: vec ContactInformationTypeV01_04;
+   Location: LocationTypeV01_04;
+   PartnerIdentification: vec PartnerIdentificationTypeV01_16;
+   PhysicalAddress: PhysicalAddressTypeV01_04;
+   ProcessRoleIdentifier: ProcessRoleIdentifierTypeV01_11;
+   schemaVersion: opt text;
+ };
+type NetTermsTypeV02_29 = 
+ record {
+   Day: opt int;
+   Days: opt int;
+   schemaVersion: opt text;
+ };
+type MonetaryAmountTypeV01_17 = 
+ record {
+   AmountType: opt AmountTypeTypeV01_03;
+   FinancialAmount: FinancialAmountTypeV01_06;
+   InvoiceChargeType: opt InvoiceChargeTypeTypeV01_02;
+   MonetaryAmountType: opt MonetaryAmountTypeTypeV01_01;
+   schemaVersion: opt text;
+ };
+type MonetaryAmountTypeTypeV01_01 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: MonetaryAmountTypeContentTypeV01_01;
+ };
+type MonetaryAmountTypeContentTypeV01_01 = 
+ variant {
+   CRE;
+   DEB;
+   ZER;
+ };
+type MimeTypeQualifierTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: MimeTypeQualifierContentTypeV01_02;
+ };
+type MimeTypeQualifierContentTypeV01_02 = 
+ variant {
+   application_EDIFACT;
+   application_EDI_Consent;
+   application_EDI_X12;
+   application_activemessage;
+   application_andrew_inset;
+   application_applefile;
+   application_atomicmail;
+   application_batch_SMTP;
+   application_beep_xml;
+   application_cals_1840;
+   application_cnrp_xml;
+   application_commonground;
+   application_cpl_xml;
+   application_cybercash;
+   application_dca_rft;
+   application_dec_dx;
+   application_dicom;
+   application_dvcs;
+   application_eshop;
+   application_font_tdpfr;
+   application_http;
+   application_hyperstudio;
+   application_iges;
+   application_index;
+   application_index_cmd;
+   application_index_obj;
+   application_index_response;
+   application_index_vnd;
+   application_iotp;
+   application_ipp;
+   application_isup;
+   application_mac_binhex40;
+   application_macwriteii;
+   application_marc;
+   application_mathematica;
+   application_msword;
+   application_news_message_id;
+   application_news_transmission;
+   application_ocsp_request;
+   application_ocsp_response;
+   application_octet_stream;
+   application_oda;
+   application_ogg;
+   application_parityfec;
+   application_pdf;
+   application_pgp_encrypted;
+   application_pgp_keys;
+   application_pgp_signature;
+   application_pkcs10;
+   application_pkcs7_mime;
+   application_pkcs7_signature;
+   application_pkix_cert;
+   application_pkix_crl;
+   application_pkixcmp;
+   application_postscript;
+   application_prs_alvestrand_titrax_sheet;
+   application_prs_cww;
+   application_prs_nprend;
+   application_prs_plucker;
+   application_qsig;
+   application_reginfo_xml;
+   application_remote_printing;
+   application_riscos;
+   application_rtf;
+   application_sdp;
+   application_set_payment;
+   application_set_payment_initiation;
+   application_set_registration;
+   application_set_registration_initiation;
+   application_sgml;
+   application_sgml_open_catalog;
+   application_sieve;
+   application_slate;
+   application_timestamp_query;
+   application_timestamp_reply;
+   application_tve_trigger;
+   application_vemmi;
+   application_vnd_3M_Post_it_Notes;
+   application_vnd_3gpp_pic_bw_large;
+   application_vnd_3gpp_pic_bw_small;
+   application_vnd_3gpp_pic_bw_var;
+   application_vnd_3gpp_sms;
+   application_vnd_FloGraphIt;
+   application_vnd_Mobius_DAF;
+   application_vnd_Mobius_DIS;
+   application_vnd_Mobius_MBK;
+   application_vnd_Mobius_MQY;
+   application_vnd_Mobius_MSL;
+   application_vnd_Mobius_PLC;
+   application_vnd_Mobius_TXF;
+   application_vnd_Quark_QuarkXPress;
+   application_vnd_accpac_simply_aso;
+   application_vnd_accpac_simply_imp;
+   application_vnd_acucobol;
+   application_vnd_acucorp;
+   application_vnd_adobe_xfdf;
+   application_vnd_aether_imp;
+   application_vnd_amiga_ami;
+   application_vnd_anser_web_certificate_issue_initiation;
+   application_vnd_anser_web_funds_transfer_initiation;
+   application_vnd_audiograph;
+   application_vnd_blueice_multipass;
+   application_vnd_bmi;
+   application_vnd_businessobjects;
+   application_vnd_canon_cpdl;
+   application_vnd_canon_lips;
+   application_vnd_cinderella;
+   application_vnd_claymore;
+   application_vnd_commerce_battelle;
+   application_vnd_commonspace;
+   application_vnd_contact_cmsg;
+   application_vnd_cosmocaller;
+   application_vnd_ctc_posml;
+   application_vnd_cups_postscript;
+   application_vnd_cups_raster;
+   application_vnd_cups_raw;
+   application_vnd_curl;
+   application_vnd_cybank;
+   application_vnd_data_vision_rdz;
+   application_vnd_dna;
+   application_vnd_dpgraph;
+   application_vnd_dreamfactory;
+   application_vnd_dxr;
+   application_vnd_ecdis_update;
+   application_vnd_ecowin_chart;
+   application_vnd_ecowin_filerequest;
+   application_vnd_ecowin_fileupdate;
+   application_vnd_ecowin_series;
+   application_vnd_ecowin_seriesrequest;
+   application_vnd_ecowin_seriesupdate;
+   application_vnd_enliven;
+   application_vnd_epson_esf;
+   application_vnd_epson_msf;
+   application_vnd_epson_quickanime;
+   application_vnd_epson_salt;
+   application_vnd_epson_ssf;
+   application_vnd_ericsson_quickcall;
+   application_vnd_eudora_data;
+   application_vnd_fdf;
+   application_vnd_ffsns;
+   application_vnd_framemaker;
+   application_vnd_fsc_weblaunch;
+   application_vnd_fujitsu_oasys;
+   application_vnd_fujitsu_oasys2;
+   application_vnd_fujitsu_oasys3;
+   application_vnd_fujitsu_oasysgp;
+   application_vnd_fujitsu_oasysprs;
+   application_vnd_fujixerox_ddd;
+   application_vnd_fujixerox_docuworks;
+   application_vnd_fujixerox_docuworks_binder;
+   application_vnd_fut_misnet;
+   application_vnd_grafeq;
+   application_vnd_groove_account;
+   application_vnd_groove_help;
+   application_vnd_groove_identity_message;
+   application_vnd_groove_injector;
+   application_vnd_groove_tool_message;
+   application_vnd_groove_tool_template;
+   application_vnd_groove_vcard;
+   application_vnd_hbci;
+   application_vnd_hhe_lesson_player;
+   application_vnd_hp_HPGL;
+   application_vnd_hp_PCL;
+   application_vnd_hp_PCLXL;
+   application_vnd_hp_hpid;
+   application_vnd_hp_hps;
+   application_vnd_httphone;
+   application_vnd_hzn_3d_crossword;
+   application_vnd_ibm_MiniPay;
+   application_vnd_ibm_afplinedata;
+   application_vnd_ibm_electronic_media;
+   application_vnd_ibm_modcap;
+   application_vnd_ibm_secure_container;
+   application_vnd_informix_visionary;
+   application_vnd_intercon_formnet;
+   application_vnd_intertrust_digibox;
+   application_vnd_intertrust_nncp;
+   application_vnd_intu_qbo;
+   application_vnd_intu_qfx;
+   application_vnd_irepository_package_xml;
+   application_vnd_is_xpr;
+   application_vnd_japannet_directory_service;
+   application_vnd_japannet_jpnstore_wakeup;
+   application_vnd_japannet_payment_wakeup;
+   application_vnd_japannet_registration;
+   application_vnd_japannet_registration_wakeup;
+   application_vnd_japannet_setstore_wakeup;
+   application_vnd_japannet_verification;
+   application_vnd_japannet_verification_wakeup;
+   application_vnd_jisp;
+   application_vnd_kde_karbon;
+   application_vnd_kde_kchart;
+   application_vnd_kde_kformula;
+   application_vnd_kde_kivio;
+   application_vnd_kde_kontour;
+   application_vnd_kde_kpresenter;
+   application_vnd_kde_kspread;
+   application_vnd_kde_kword;
+   application_vnd_kenameaapp;
+   application_vnd_koan;
+   application_vnd_liberty_request_xml;
+   application_vnd_llamagraphics_life_balance_desktop;
+   application_vnd_lotus_1_2_3;
+   application_vnd_lotus_approach;
+   application_vnd_lotus_freelance;
+   application_vnd_lotus_notes;
+   application_vnd_lotus_organizer;
+   application_vnd_lotus_screencam;
+   application_vnd_lotus_wordpro;
+   application_vnd_mcd;
+   application_vnd_mediastation_cdkey;
+   application_vnd_meridian_slingshot;
+   application_vnd_micrografx_flo;
+   application_vnd_micrografx_igx;
+   application_vnd_mif;
+   application_vnd_minisoft_hp3000_save;
+   application_vnd_mitsubishi_misty_guard_trustweb;
+   application_vnd_mophun_application;
+   application_vnd_mophun_certificate;
+   application_vnd_motorola_flexsuite;
+   application_vnd_motorola_flexsuite_adsi;
+   application_vnd_motorola_flexsuite_fis;
+   application_vnd_motorola_flexsuite_gotap;
+   application_vnd_motorola_flexsuite_kmr;
+   application_vnd_motorola_flexsuite_ttc;
+   application_vnd_motorola_flexsuite_wem;
+   application_vnd_mozilla_xul_xml;
+   application_vnd_ms_artgalry;
+   application_vnd_ms_asf;
+   application_vnd_ms_excel;
+   application_vnd_ms_lrm;
+   application_vnd_ms_powerpoint;
+   application_vnd_ms_project;
+   application_vnd_ms_tnef;
+   application_vnd_ms_works;
+   application_vnd_ms_wpl;
+   application_vnd_mseq;
+   application_vnd_msign;
+   application_vnd_music_niff;
+   application_vnd_musician;
+   application_vnd_netfpx;
+   application_vnd_noblenet_directory;
+   application_vnd_noblenet_sealer;
+   application_vnd_noblenet_web;
+   application_vnd_novadigm_EDM;
+   application_vnd_novadigm_EDX;
+   application_vnd_novadigm_EXT;
+   application_vnd_obn;
+   application_vnd_osa_netdeploy;
+   application_vnd_palm;
+   application_vnd_pg_format;
+   application_vnd_pg_osasli;
+   application_vnd_powerbuilder6;
+   application_vnd_powerbuilder6_s;
+   application_vnd_powerbuilder7;
+   application_vnd_powerbuilder75;
+   application_vnd_powerbuilder75_s;
+   application_vnd_powerbuilder7_s;
+   application_vnd_previewsystems_box;
+   application_vnd_publishare_delta_tree;
+   application_vnd_pvi_ptid1;
+   application_vnd_pwg_multiplexed;
+   application_vnd_pwg_xhtml_print_xml;
+   application_vnd_rapid;
+   application_vnd_s3sms;
+   application_vnd_sealed_net;
+   application_vnd_seemail;
+   application_vnd_shana_informed_formdata;
+   application_vnd_shana_informed_formtemplate;
+   application_vnd_shana_informed_interchange;
+   application_vnd_shana_informed_package;
+   application_vnd_smaf;
+   application_vnd_sss_cod;
+   application_vnd_sss_dtf;
+   application_vnd_sss_ntf;
+   application_vnd_street_stream;
+   application_vnd_svd;
+   application_vnd_swiftview_ics;
+   application_vnd_triscape_mxs;
+   application_vnd_trueapp;
+   application_vnd_truedoc;
+   application_vnd_ufdl;
+   application_vnd_uplanet_alert;
+   application_vnd_uplanet_alert_wbxml;
+   application_vnd_uplanet_bearer_choice;
+   application_vnd_uplanet_bearer_choice_wbxml;
+   application_vnd_uplanet_cacheop;
+   application_vnd_uplanet_cacheop_wbxml;
+   application_vnd_uplanet_channel;
+   application_vnd_uplanet_channel_wbxml;
+   application_vnd_uplanet_list;
+   application_vnd_uplanet_list_wbxml;
+   application_vnd_uplanet_listcmd;
+   application_vnd_uplanet_listcmd_wbxml;
+   application_vnd_uplanet_signal;
+   application_vnd_vcx;
+   application_vnd_vectorworks;
+   application_vnd_vidsoft_vidconference;
+   application_vnd_visio;
+   application_vnd_visionary;
+   application_vnd_vividence_scriptfile;
+   application_vnd_vsf;
+   application_vnd_wap_sic;
+   application_vnd_wap_slc;
+   application_vnd_wap_wbxml;
+   application_vnd_wap_wmlc;
+   application_vnd_wap_wmlscriptc;
+   application_vnd_webturbo;
+   application_vnd_wrq_hp3000_labelled;
+   application_vnd_wt_stf;
+   application_vnd_wv_csp_wbxml;
+   application_vnd_xara;
+   application_vnd_xfdl;
+   application_vnd_yellowriver_custom_menu;
+   application_whoispp_query;
+   application_whoispp_response;
+   application_wita;
+   application_wordperfect5_1;
+   application_x400_bp;
+   application_xhtml_xml;
+   application_xml;
+   application_xml_dtd;
+   application_xml_external_parsed_entity;
+   application_zip;
+   audio_32kadpcm;
+   audio_AMR;
+   audio_AMR_WB;
+   audio_CN;
+   audio_DAT12;
+   audio_DVI4;
+   audio_EVRC;
+   audio_EVRC0;
+   audio_G722;
+   audio_G723;
+   audio_G726_16;
+   audio_G726_24;
+   audio_G726_32;
+   audio_G726_40;
+   audio_G728;
+   audio_G729;
+   audio_G729D;
+   audio_G729E;
+   audio_GSM;
+   audio_GSM_EFR;
+   audio_G_722_1;
+   audio_L16;
+   audio_L20;
+   audio_L24;
+   audio_L8;
+   audio_LPC;
+   audio_MP4A_LATM;
+   audio_MPA;
+   audio_PCMA;
+   audio_PCMU;
+   audio_QCELP;
+   audio_RED;
+   audio_SMV;
+   audio_SMV0;
+   audio_VDVI;
+   audio_basic;
+   audio_mpa_robust;
+   audio_mpeg;
+   audio_parityfec;
+   audio_prs_sid;
+   audio_telephone_event;
+   audio_tone;
+   audio_vnd_3gpp_iufp;
+   audio_vnd_cisco_nse;
+   audio_vnd_cns_anp1;
+   audio_vnd_cns_inf1;
+   audio_vnd_digital_winds;
+   audio_vnd_everad_plj;
+   audio_vnd_lucent_voice;
+   audio_vnd_nortel_vbk;
+   audio_vnd_nuera_ecelp4800;
+   audio_vnd_nuera_ecelp7470;
+   audio_vnd_nuera_ecelp9600;
+   audio_vnd_octel_sbc;
+   audio_vnd_qcelp;
+   audio_vnd_rhetorex_32kadpcm;
+   audio_vnd_vmx_cvsd;
+   image_cgm;
+   image_g3fax;
+   image_gif;
+   image_ief;
+   image_jpeg;
+   image_naplps;
+   image_png;
+   image_prs_btif;
+   image_prs_pti;
+   image_t38;
+   image_tiff;
+   image_tiff_fx;
+   image_vnd_cns_inf2;
+   image_vnd_djvu;
+   image_vnd_dwg;
+   image_vnd_dxf;
+   image_vnd_fastbidsheet;
+   image_vnd_fpx;
+   image_vnd_fst;
+   image_vnd_fujixerox_edmics_mmr;
+   image_vnd_fujixerox_edmics_rlc;
+   image_vnd_globalgraphics_pgb;
+   image_vnd_mix;
+   image_vnd_ms_modi;
+   image_vnd_net_fpx;
+   image_vnd_svf;
+   image_vnd_wap_wbmp;
+   image_vnd_xiff;
+   message_delivery_status;
+   message_disposition_notification;
+   message_external_body;
+   message_http;
+   message_news;
+   message_partial;
+   message_rfc822;
+   message_s_http;
+   message_sip;
+   message_sipfrag;
+   model_iges;
+   model_mesh;
+   model_vnd_dwf;
+   model_vnd_flatland_3dml;
+   model_vnd_gdl;
+   model_vnd_gs_gdl;
+   model_vnd_gtw;
+   model_vnd_mts;
+   model_vnd_parasolid_transmit_binary;
+   model_vnd_parasolid_transmit_text;
+   model_vnd_vtu;
+   model_vrml;
+   multipart_alternative;
+   multipart_appledouble;
+   multipart_byteranges;
+   multipart_digest;
+   multipart_encrypted;
+   multipart_form_data;
+   multipart_header_set;
+   multipart_mixed;
+   multipart_parallel;
+   multipart_related;
+   multipart_report;
+   multipart_signed;
+   multipart_voice_message;
+   text_calendar;
+   text_css;
+   text_directory;
+   text_enriched;
+   text_html;
+   text_parityfec;
+   text_plain;
+   text_prs_lines_tag;
+   text_rfc822_headers;
+   text_richtext;
+   text_rtf;
+   text_sgml;
+   text_t140;
+   text_tab_separated_values;
+   text_uri_list;
+   text_vnd_DMClientScript;
+   text_vnd_IPTC_NITF;
+   text_vnd_IPTC_NewsML;
+   text_vnd_abc;
+   text_vnd_curl;
+   text_vnd_fly;
+   text_vnd_fmi_flexstor;
+   text_vnd_in3d_3dml;
+   text_vnd_in3d_spot;
+   text_vnd_latex_z;
+   text_vnd_motorola_reflex;
+   text_vnd_ms_mediapackage;
+   text_vnd_net2phone_commcenter_command;
+   text_vnd_sun_j2me_app_descriptor;
+   text_vnd_wap_si;
+   text_vnd_wap_sl;
+   text_vnd_wap_wml;
+   text_vnd_wap_wmlscript;
+   text_xml;
+   text_xml_external_parsed_entity;
+   video_BMPEG;
+   video_BT656;
+   video_CelB;
+   video_DV;
+   video_H261;
+   video_H263;
+   video_H263_1998;
+   video_H263_2000;
+   video_JPEG;
+   video_MP1S;
+   video_MP2P;
+   video_MP2T;
+   video_MP4V_ES;
+   video_MPV;
+   video_SMPTE292M;
+   video_mpeg;
+   video_nv;
+   video_parityfec;
+   video_pointer;
+   video_quicktime;
+   video_vnd_fvt;
+   video_vnd_motorola_video;
+   video_vnd_motorola_videop;
+   video_vnd_mpegurl;
+   video_vnd_nokia_interleaved_multimedia;
+   video_vnd_objectvideo;
+   video_vnd_vivo;
+ };
+type MilestoneDateTypeV02_29 = 
+ record {
+   AlternativeEvent: opt text;
+   DateType: DateTypeTypeV01_00;
+   Event: opt EventTypeV01_00;
+   EventDate: int;
+   schemaVersion: opt text;
+ };
+type MapReferenceTypeV02_29 = 
+ record {
+   AddressLine1: text;
+   AddressLine2: opt text;
+   AddressLine3: opt text;
+   AddressLine4: opt text;
+   AddressLine5: opt text;
+   CityName: text;
+   Country: CountryTypeV01_02;
+   CountrySubdivision: opt CountrySubdivisionTypeV01_02;
+   Description: opt text;
+   Identifier: text;
+   PostOfficeBox: opt text;
+   PostalCode: opt text;
+   Reference1: text;
+   Reference2: opt text;
+   schemaVersion: opt text;
+ };
+type ManifestItemTypeV01_23 = 
+ record {
+   Description: opt text;
+   Language: opt LanguageTypeV01_02;
+   Length: opt int;
+   MimeTypeQualifier: MimeTypeQualifierTypeV01_02;
+   UniversalResourceIdentifier: text;
+   schemaVersion: opt text;
+ };
+type LocationTypeV01_04 = 
+ record {
+   AlternativeIdentifier: opt vec AlternativeIdentifierTypeV01_04;
+   DUNS: opt text;
+   DUNSPlus4: opt text;
+   GLN: opt text;
+   schemaVersion: opt text;
+ };
+type LanguageTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type KnownPartnerTypeV01_16 = 
+ record {
+   PartnerIdentification: PartnerIdentificationTypeV01_16;
+   ProcessRoleIdentifier: ProcessRoleIdentifierTypeV01_11;
+   schemaVersion: opt text;
+ };
+type KnownPartnerContactTypeV01_16 = 
+ record {
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   KnownPartner: KnownPartnerTypeV01_16;
+   schemaVersion: opt text;
+ };
+type InvoiceChargeTypeTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: InvoiceChargeTypeContentTypeV01_02;
+ };
+type InvoiceChargeTypeContentTypeV01_02 = 
+ variant {
+   ALC;
+   CUC;
+   DEA;
+   ESC;
+   FRC;
+   HAC;
+   LEC;
+   LIC;
+   MAC;
+   PUC;
+   QUD;
+   REC;
+ };
+type IntermittentPartnerTypeV01_16 = 
+ record {
+   ContactInformation: ContactInformationTypeV01_04;
+   PhysicalAddress: PhysicalAddressTypeV01_04;
+   ProcessRoleIdentifier: ProcessRoleIdentifierTypeV01_11;
+   schemaVersion: opt text;
+ };
+type GovernmentPriorityRatingTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: GovernmentPriorityRatingContentTypeV01_03;
+ };
+type GovernmentPriorityRatingContentTypeV01_03 = 
+ variant {
+   ATE;
+   DEF;
+   DOE;
+   ENP;
+   OTH;
+ };
+type FullPartnerTypeV01_16 = 
+ record {
+   ContactInformation: opt vec ContactInformationTypeV01_04;
+   Location: opt LocationTypeV01_04;
+   PartnerIdentification: opt vec PartnerIdentificationTypeV01_16;
+   PhysicalAddress: opt PhysicalAddressTypeV01_04;
+   ProcessRoleIdentifier: ProcessRoleIdentifierTypeV01_11;
+   schemaVersion: opt text;
+ };
+type FreeOnBoardTypeV01_01 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: FreeOnBoardContentTypeV01_01;
+ };
+type FreeOnBoardContentTypeV01_01 = 
+ variant {
+   DES;
+   NMA;
+   ORG;
+ };
+type FinancingTermsTypeV02_29 = 
+ record {
+   FinanceTerms: opt FinanceTermsTypeV01_03;
+   PaymentTerms: opt vec PaymentTermsTypeV02_29;
+   schemaVersion: opt text;
+ };
+type FinancialAmountTypeV01_06 = 
+ record {
+   Amount: opt float64;
+   Currency: CurrencyTypeV01_03;
+   Identifier: opt text;
+   schemaVersion: opt text;
+ };
+type FinanceTermsTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: FinanceTermsContentTypeV01_03;
+ };
+type FinanceTermsContentTypeV01_03 = 
+ variant {
+   BDO;
+   BNK;
+   CDC;
+   CSM;
+   EPS;
+   IKP;
+   LOC;
+   LSA;
+   MDT;
+   NMI;
+   PBC;
+   PCC;
+   PPC;
+   PPW;
+   PVC;
+   PVN;
+   TET;
+   WRT;
+   WVD;
+ };
+type EventTypeV01_00 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: EventContentTypeV01_00;
+ };
+type EventContentTypeV01_00 = 
+ variant {
+   ACA;
+   ACT;
+   APG;
+   APS;
+   CME;
+   CWE;
+   CWS;
+   DDR;
+   DEL;
+   DIN;
+   DSF;
+   DSS;
+   EDS;
+   EIN;
+   ESD;
+   ETS;
+   EWC;
+   FSA;
+   INT;
+   ITE;
+   LSG;
+   NCA;
+   PAC;
+   PDA;
+   RIN;
+   SAB;
+   SID;
+   SPV;
+   SRF;
+   SRR;
+   STI;
+   SVL;
+   TSS;
+ };
+type DurationTypeV01_17 = 
+ record {
+   Period: Duration;
+   StartDate: opt int;
+   schemaVersion: opt text;
+ };
+type Duration = 
+ variant {
+   nanoseconds: nat;
+   seconds: nat;
+ };
+type DocumentTypeTypeV01_13 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: DocumentTypeContentTypeV01_13;
+ };
+type DocumentTypeContentTypeV01_13 = 
+ variant {
+   APM;
+   ARA;
+   CAR;
+   CBN;
+   CCN;
+   CFA;
+   CIN;
+   CNM;
+   COA;
+   CON;
+   COS;
+   COT;
+   CRN;
+   DEM;
+   DEN;
+   DIN;
+   DOR;
+   DRN;
+   DRR;
+   ECO;
+   EDD;
+   EIR;
+   EOL;
+   FUO;
+   IDD;
+   INV;
+   LID;
+   MEN;
+   MID;
+   MON;
+   NTS;
+   OCL;
+   OGA;
+   OPO;
+   OPR;
+   PCN;
+   PFA;
+   PII;
+   PLS;
+   POI;
+   PON;
+   POO;
+   PRC;
+   PSI;
+   PUO;
+   QUO;
+   REC;
+   REN;
+   REO;
+   REQ;
+   RMA;
+   RPO;
+   RTA;
+   SAO;
+   SBC;
+   SBD;
+   SBI;
+   SBN;
+   SCA;
+   SEN;
+   SEO;
+   SHD;
+   SNC;
+   SPC;
+   SPN;
+   SPO;
+   SPR;
+   SPW;
+   SRI;
+   SWT;
+   TCS;
+   TRO;
+   WAB;
+   WAC;
+   WOO;
+ };
+type DocumentSecurityTypeV01_23 = 
+ record {
+   NonRepudiableReceipt: opt bool;
+   PersistentEncryption: opt bool;
+   PersistentSignature: opt bool;
+   schemaVersion: opt text;
+ };
+type DocumentManifestTypeV01_23 = 
+ record {
+   ManifestItem: vec ManifestItemTypeV01_23;
+   MultipleType: opt bool;
+   NumberOfItems: int;
+   schemaVersion: opt text;
+ };
+type DocumentInformationTypeV01_23 = 
+ record {
+   Creation: int;
+   DocumentIdentification: DocumentIdentificationTypeV01_23;
+   DocumentManifest: opt DocumentManifestTypeV01_23;
+   DocumentSecurity: opt DocumentSecurityTypeV01_23;
+   schemaVersion: opt text;
+ };
+type DocumentIdentificationTypeV01_23 = 
+ record {
+   Identifier: text;
+   StandardDocumentIdentification:
+    opt StandardDocumentIdentificationTypeV01_23;
+   TpirPipIdentification: opt TpirPipIdentificationTypeV01_23;
+   Type: opt text;
+   schemaVersion: opt text;
+ };
+type DocumentHeaderTypeV01_23 = 
+ record {
+   CorrelationInformation: opt CorrelationInformationTypeV01_23;
+   DocumentInformation: DocumentInformationTypeV01_23;
+   HeaderVersion: opt text;
+   Receiver: ReceiverTypeV01_23;
+   Sender: SenderTypeV01_23;
+   schemaVersion: opt text;
+ };
+type DiscountsTypeV02_29 = 
+ record {
+   Day: opt int;
+   Days: opt int;
+   Percent: opt float64;
+   schemaVersion: opt text;
+ };
+type DateTypeTypeV01_00 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: DateTypeContentTypeV01_00;
+ };
+type DateTypeContentTypeV01_00 = 
+ variant {
+   ACT;
+   FCT;
+   PLN;
+ };
+type DateTimePeriodTypeV01_03 = 
+ record {
+   Begin: int;
+   End: int;
+   schemaVersion: opt text;
+ };
+type DatePeriodTypeV01_03 = 
+ record {
+   Begin: int;
+   End: int;
+   schemaVersion: opt text;
+ };
+type DatePeriodAndDurationTypeV01_17 = 
+ record {
+   DatePeriod: opt DatePeriodTypeV01_03;
+   Duration: opt DurationTypeV01_17;
+   schemaVersion: opt text;
+ };
+type CustomerTypeTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: CustomerTypeContentTypeV01_03;
+ };
+type CustomerTypeContentTypeV01_03 = 
+ variant {
+   ENC;
+   ULC;
+ };
+type CustomerInformationTypeV02_29 = 
+ record {
+   CustomerType: opt CustomerTypeTypeV01_03;
+   PartnerDescription: PartnerDescriptionTypeV01_16;
+   ProjectIdentifier: opt text;
+   schemaVersion: opt text;
+ };
+type CurrencyTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type CreditCardTypeV02_29 = 
+ record {
+   CardHolderName: text;
+   CidIdentifier: opt text;
+   CreditCardClassification: CreditCardClassificationTypeV01_03;
+   ExpiryDate: int;
+   Identifier: text;
+   schemaVersion: opt text;
+ };
+type CreditCardClassificationTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: CreditCardClassificationContentTypeV01_03;
+ };
+type CreditCardClassificationContentTypeV01_03 = 
+ variant {
+   AMX;
+   DIS;
+   EUC;
+   JCU;
+   MAC;
+   PRO;
+   VIS;
+ };
+type CountryTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type CountrySubdivisionTypeV01_02 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: text;
+ };
+type CorrelationInformationTypeV01_23 = 
+ record {
+   ContractInformation: opt ContractInformationTypeV01_23;
+   RequestingDocumentInformation: opt RequestingDocumentInformationTypeV01_23;
+   schemaVersion: opt text;
+ };
+type ContractInformationTypeV02_29 = 
+ record {
+   Identifier: text;
+   Notes: opt text;
+   schemaVersion: opt text;
+ };
+type ContractInformationTypeV01_23 = 
+ record {
+   ContractIdentifier: opt text;
+   ContractType: opt text;
+   schemaVersion: opt text;
+ };
+type ContactInformationTypeV01_04 = 
+ record {
+   Contact: text;
+   Email: opt text;
+   Fax: opt text;
+   Identifier: opt text;
+   IdentifierCode: opt text;
+   Phone: opt text;
+   schemaVersion: opt text;
+ };
+type CarrierInformationTypeV01_17 = 
+ record {
+   Identifier: opt text;
+   SCAC: text;
+   schemaVersion: opt text;
+ };
+type BusinessServiceInformationTypeV01_23 = 
+ record {
+   ActionName: text;
+   ProcessIdentifier: text;
+   ProcessReference: opt text;
+   ProcessState: opt text;
+   ServiceName: text;
+   schemaVersion: opt text;
+ };
+type BusinessDocumentReferenceTypeV01_12 = 
+ record {
+   DateTime: opt int;
+   DocumentType: DocumentTypeTypeV01_13;
+   Identifier: text;
+   Line: opt text;
+   Revision: opt text;
+   SubLine: opt text;
+   schemaVersion: opt text;
+ };
+type AncillaryDocumentTypeV02_29 = 
+ record {
+   Name: text;
+   Version: text;
+   schemaVersion: opt text;
+ };
+type AmountTypeTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: AmountTypeContentTypeV01_03;
+ };
+type AmountTypeContentTypeV01_03 = 
+ variant {
+   DIP;
+   DIS;
+   FRE;
+   INS;
+   MAT;
+   MIS;
+   NET;
+   PRC;
+   TOD;
+   TOT;
+   TOV;
+   UNI;
+   VAD;
+ };
+type AlternativeIdentifierTypeV01_04 = 
+ record {
+   Authority: text;
+   Identifier: text;
+   schemaVersion: opt text;
+ };
+type AccountDescriptionTypeV02_29 = 
+ record {
+   AccountClassification: opt AccountClassificationTypeV01_03;
+   AccountName: opt text;
+   AccountNumber: opt text;
+   CreditCard: opt CreditCardTypeV02_29;
+   PartnerDescription: opt vec PartnerDescriptionTypeV01_16;
+   PaymentMethod: opt PaymentMethodTypeV01_02;
+   PrePaymentCheckNumber: opt text;
+   WireTransferIdentifier: opt text;
+   schemaVersion: opt text;
+ };
+type AccountClassificationTypeV01_03 = 
+ record {
+   agency: opt text;
+   codeListVersion: opt text;
+   identifier: opt text;
+   schemaVersion: opt text;
+   value: AccountClassificationContentTypeV01_03;
+ };
+type AccountClassificationContentTypeV01_03 = 
+ variant {
+   CHK;
+   CRC;
+   SAV;
+ };
+service : {
+  purchaseOrderRequest: (PurchaseOrderRequestTypeV02_05) ->
+   (PurchaseOrderRequestTypeV02_05);
+}

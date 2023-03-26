@@ -25,16 +25,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
+
 import javax.xml.bind.annotation.XmlValue;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.ic4j.candid.IDLUtils;
 import org.ic4j.candid.ObjectSerializer;
 import org.ic4j.candid.parser.IDLType;
@@ -61,13 +65,14 @@ public final class JAXBSerializer implements ObjectSerializer {
 		// handle null values
 		if (value == null)
 			return IDLValue.create(value, Type.NULL);
+		
 
 		if (value instanceof List) {
 			value = ((List) value).toArray();
 		}
 
 		boolean isArray = value.getClass().isArray();
-		boolean isOptional = Optional.class.isAssignableFrom(value.getClass());
+		boolean isOptional = Optional.class.isAssignableFrom(value.getClass());	
 
 		// handle default types
 		if (IDLType.isDefaultType(value.getClass()) && !isArray && !isOptional)
@@ -115,6 +120,23 @@ public final class JAXBSerializer implements ObjectSerializer {
 		// handle null values
 		if (value == null)
 			return IDLValue.create(value, Type.NULL);
+		
+		// handle float as double, Motoko does not support Float32		
+		if(value instanceof Float)
+		{
+			if(value.getClass().isPrimitive())
+				value = new Float((float) value);
+			
+			value = ((Float)value).doubleValue();
+			
+		}
+		
+		if(value instanceof JAXBElement)
+			value = ((JAXBElement) value).getValue();
+		
+		// handle null values
+		if (value == null)
+			return IDLValue.create(value, Type.NULL);
 
 		// handle XMLGregorianCalendar like nanosecond timestamp
 		if (value instanceof XMLGregorianCalendar) {
@@ -123,12 +145,18 @@ public final class JAXBSerializer implements ObjectSerializer {
 			return IDLValue.create(value, Type.INT);
 		}
 		
+		// handle XML Duration 
+		if (value instanceof Duration) {
+			return org.ic4j.types.Duration.serializeXML((Duration) value);
+		}		
+		
 		// handle BigDecimal like Double
 		if (value instanceof BigDecimal) {
 			value = ((BigDecimal) value).doubleValue();
 
 			return IDLValue.create(value, Type.FLOAT64);
-		}		
+		}
+				
 
 		Class valueClass = value.getClass();
 
@@ -154,7 +182,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 		Map<Label, Object> valueMap = new TreeMap<Label, Object>();
 		Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
 
-		Field[] fields = valueClass.getDeclaredFields();
+		Field[] fields = IDLUtils.getAllFields(valueClass);
 
 		for (Field field : fields) {
 			if (field.isAnnotationPresent(XmlTransient.class))
@@ -175,11 +203,14 @@ public final class JAXBSerializer implements ObjectSerializer {
 			if (name.startsWith("ENUM$VALUES"))
 				continue;
 
-			if (!field.isAnnotationPresent(XmlElement.class) && !field.isAnnotationPresent(XmlAttribute.class)
+			if (!field.isAnnotationPresent(XmlElement.class) && !field.isAnnotationPresent(XmlElementRef.class) && !field.isAnnotationPresent(XmlAttribute.class) 
 					&& !field.isAnnotationPresent(XmlAnyElement.class) && !field.isAnnotationPresent(XmlValue.class))
 				continue;
 
-			Class typeClass = field.getType();
+			Class fieldClass = field.getType();
+			
+			if(fieldClass.isPrimitive())
+				fieldClass = ClassUtils.primitiveToWrapper(fieldClass);
 
 			Object item = null;
 			try {
@@ -188,17 +219,35 @@ public final class JAXBSerializer implements ObjectSerializer {
 				continue;
 			} catch (IllegalAccessException e) {
 				continue;
-			}
-
+			}		
+			
+			boolean isArray = false;
+			
 			// handle List like array
-			if (item != null && item instanceof List) {
-				item = ((List) item).toArray();
+			if (List.class.isAssignableFrom(fieldClass))
+			{
+				fieldClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				isArray = true;
+				
+				if (item != null)
+					item = ((List) item).toArray();
+			}
+			else			
+				isArray = fieldClass.isArray();
+			
 
-				typeClass = item.getClass();
+			boolean isOptional = false;
+			if(Optional.class.isAssignableFrom(fieldClass))
+			{
+				fieldClass = (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+				isOptional = true;
 			}
 
+			
+			boolean isRequired = true;
+			
 			// handle BigDecimal like Double
-			if (item != null && BigDecimal.class.isAssignableFrom(typeClass))
+			if (item != null && BigDecimal.class.isAssignableFrom(fieldClass))
 				item = ((BigDecimal) item).doubleValue();
 
 			IDLType fieldType;
@@ -212,7 +261,26 @@ public final class JAXBSerializer implements ObjectSerializer {
 					name = xmlName;
 				
 				if(!xmlElement.required())
-					item = Optional.ofNullable(item);
+					isRequired = false;
+
+			}
+			
+			if (field.isAnnotationPresent(XmlElementRef.class)) {
+				XmlElementRef xmlElementRef = field.getAnnotation(XmlElementRef.class);
+
+				String xmlName = xmlElementRef.name();
+
+				if (xmlName != null)
+					name = xmlName;
+				
+				if(!xmlElementRef.required() )
+					isRequired = false;
+				
+				if(item != null && item instanceof JAXBElement)
+				{					
+					fieldClass = ((JAXBElement)item).getDeclaredType();	
+					item = ((JAXBElement) item).getValue();
+				}
 			}
 
 			if (field.isAnnotationPresent(XmlAttribute.class)) {
@@ -223,8 +291,8 @@ public final class JAXBSerializer implements ObjectSerializer {
 				if (xmlName != null)
 					name = xmlName;
 				
-				if(!xmlAttribute.required())
-					item = Optional.ofNullable(item);				
+				if(!xmlAttribute.required() )
+					isRequired = false;
 			}
 			
 			if (field.isAnnotationPresent(XmlEnumValue.class)) {
@@ -238,23 +306,53 @@ public final class JAXBSerializer implements ObjectSerializer {
 
 			if (item == null) {
 				// set NULL value
-				fieldType = IDLType.createType(Type.NULL);
+				fieldType = IDLType.createType(Type.NULL);		
+				
+				
+				if(!isRequired)
+				{	
+					fieldType = IDLType.createType(Type.OPT, fieldType);
+					item = Optional.ofNullable(item);
+				}
 
 				typeMap.put(label, fieldType);
 				valueMap.put(Label.createNamedLabel((String) name), item);
 				continue;
 			}
 
-			boolean isArray = typeClass.isArray();
-			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
 
-			if (IDLType.isDefaultType(typeClass)) {
+			if (IDLType.isDefaultType(fieldClass)) {			
+
+				// handle float as double, Motoko does not support Float32		
+				if(item instanceof Float)
+				{
+					if(item.getClass().isPrimitive())
+						item = new Float((float) item);
+					
+					item = ((Float)item).doubleValue();
+					
+					fieldClass = Double.class;
+				}				
+				
 				// if we do not specify type in annotation and type is one of default
-				fieldType = IDLType.createType(item);
+				if(isOptional)
+					fieldType = IDLType.createType(Type.OPT, IDLType.createType(fieldClass));
+				else
+					fieldType = IDLType.createType(fieldClass);				
+				
+				if(isArray)
+					fieldType = IDLType.createType(Type.VEC, fieldType);
+				
+				if(!isRequired)
+				{	
+					fieldType = IDLType.createType(Type.OPT, fieldType);
+					item = Optional.ofNullable(item);
+				}
+								
 				typeMap.put(label, fieldType);
 				valueMap.put(label, item);
 				continue;
-			} else if (typeClass.isEnum())
+			} else if (fieldClass.isEnum())
 				fieldType = IDLType.createType(Type.VARIANT);
 			else	
 				fieldType = IDLType.createType(Type.RECORD);
@@ -267,7 +365,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 					Object[] nestedArray = (Object[]) item;
 					List<Object> arrayValue = new ArrayList();
 
-					fieldType = this.getIDLType(typeClass.getComponentType());
+					fieldType = JAXBUtils.getIDLType(fieldClass.getComponentType());
 					for (int i = 0; i < nestedArray.length; i++) {
 						Object nestedValue = nestedArray[i];
 						// if nested RECORD or VARIANT is Optional
@@ -286,7 +384,7 @@ public final class JAXBSerializer implements ObjectSerializer {
 				} else {
 					Object nestedValue = item;
 					// if nested RECORD or VARIANT is Optional
-					if (item != null && Optional.class.isAssignableFrom(typeClass))
+					if (item != null && Optional.class.isAssignableFrom(fieldClass))
 						nestedValue = ((Optional) item).orElse(null);
 
 					IDLValue nestedIdlValue = this.getIDLValue(nestedValue, fieldType.getType());
@@ -297,6 +395,9 @@ public final class JAXBSerializer implements ObjectSerializer {
 				}
 			} else if (isArray) {
 				// handle arrays , not record types
+				if (isOptional)
+					fieldType = IDLType.createType(Type.OPT, fieldType);
+				
 				fieldType = IDLType.createType(Type.VEC, fieldType);
 			} else if (isOptional) {
 				// handle Optional, not record types
@@ -308,6 +409,12 @@ public final class JAXBSerializer implements ObjectSerializer {
 
 			if (fieldType.getType() == Type.PRINCIPAL)
 				item = IDLUtils.objectToPrincipal(item);
+			
+			if(!isRequired)
+			{	
+				fieldType = IDLType.createType(Type.OPT, fieldType);
+				item = Optional.ofNullable(item);
+			}
 
 			typeMap.put(label, fieldType);
 			valueMap.put(label, item);
@@ -318,15 +425,29 @@ public final class JAXBSerializer implements ObjectSerializer {
 			parentType = Type.RECORD;
 
 		// handle Enum to VARIANT
+		mainloop:
 		if (valueClass.isEnum()) {
 			parentType = Type.VARIANT;
 			Enum enumValue = (Enum) value;
 
 			String name = enumValue.name();
-
+			
+			
+			if(name == null)
+				break mainloop;
+								
 			try {
-				if (valueClass.getField(name).isAnnotationPresent(XmlEnumValue.class)) 
-					name = valueClass.getField(name).getAnnotation(XmlEnumValue.class).value();
+				Field enumField = valueClass.getDeclaredField(name);
+				
+				if(enumField == null)
+					break mainloop;
+				
+				if (enumField.isAnnotationPresent(XmlEnumValue.class)) 
+				{
+					name = enumField.getAnnotation(XmlEnumValue.class).value();	
+				
+					name = JAXBUtils.replaceSpecialChars(name);
+				}
 				
 				Label enumLabel = Label.createNamedLabel(name);
 				// if there is no Enum value, set it to null
@@ -336,198 +457,22 @@ public final class JAXBSerializer implements ObjectSerializer {
 				}
 				
 
-			} catch (NoSuchFieldException | SecurityException e) {
+			} catch ( SecurityException | NoSuchFieldException e) {
 
 			}
 
 		}
 		
-	
-
 		IDLType idlType = IDLType.createType(parentType, typeMap);
-		IDLValue idlValue = IDLValue.create(valueMap, idlType);
+		
+		IDLValue idlValue;
+		
+		if(parentType.equals(Type.VARIANT) && valueMap.isEmpty())
+			idlValue = IDLValue.create(null);
+		else	
+			idlValue = IDLValue.create(valueMap, idlType);
 
 		return idlValue;
-	}
-
-	public static IDLType getIDLType(Class valueClass) {
-		
-		// handle null values
-		if (valueClass == null)
-			return IDLType.createType(Type.NULL);
-		
-		// handle BigDecimal like Double
-		if (BigDecimal.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.FLOAT64);		
-
-		if (IDLType.isDefaultType(valueClass))
-			return IDLType.createType(valueClass);
-
-		if (Optional.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.OPT);
-
-		if (List.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.VEC);
-
-		// handle XMLGregorianCalendar like nanosecond timestamp
-		if (XMLGregorianCalendar.class.isAssignableFrom(valueClass))
-			return IDLType.createType(Type.INT);
-		
-
-		Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
-
-		Field[] fields = valueClass.getDeclaredFields();
-
-		for (Field field : fields) {
-			if (field.isAnnotationPresent(XmlTransient.class))
-				continue;
-
-			if (field.isEnumConstant())
-				continue;
-
-			String name = field.getName();
-			if (name.startsWith("this$"))
-				continue;
-
-			if (name.startsWith("$VALUES"))
-				continue;
-
-			if (name.startsWith("ENUM$VALUES"))
-				continue;
-			
-			if (!field.isAnnotationPresent(XmlElement.class) && !field.isAnnotationPresent(XmlAttribute.class) 
-					&& !field.isAnnotationPresent(XmlAnyElement.class) && !field.isAnnotationPresent(XmlValue.class))
-				continue;			
-
-			Class typeClass = field.getType();
-			
-			boolean isArray = typeClass.isArray();
-			boolean isOptional = Optional.class.isAssignableFrom(typeClass);			
-			
-			IDLType fieldType;
-			
-			if (field.isAnnotationPresent(XmlAnyElement.class))
-				fieldType = IDLType.createType(Type.RESERVED);
-			else		
-				fieldType = getIDLType(typeClass);
-
-			if (field.isAnnotationPresent(XmlElement.class)) {
-				XmlElement xmlElement = field.getAnnotation(XmlElement.class);
-
-				String xmlName = xmlElement.name();
-
-				if (xmlName != null)
-					name = xmlName;
-				
-				if(!xmlElement.required())
-					isOptional = true;
-			}
-
-			if (field.isAnnotationPresent(XmlAttribute.class)) {
-				XmlAttribute xmlAttribute = field.getAnnotation(XmlAttribute.class);
-
-				String xmlName = xmlAttribute.name();
-
-				if (xmlName != null)
-					name = xmlName;
-				
-				if(!xmlAttribute.required())
-						isOptional = true;
-			}
-			
-			if (field.isAnnotationPresent(XmlEnumValue.class)) {
-				String xmlName = field.getAnnotation(XmlEnumValue.class).value();
-
-				if (xmlName != null)
-					name = xmlName;
-			}			
-
-			Label label = Label.createNamedLabel((String) name);
-
-			if (IDLType.isDefaultType(typeClass) || XMLGregorianCalendar.class.isAssignableFrom(typeClass)
-					|| BigDecimal.class.isAssignableFrom(typeClass)) {
-				// if we do not specify type in annotation and type is one of default
-				if (isOptional && fieldType.getType() != Type.OPT) 
-					// handle Optional
-					fieldType = IDLType.createType(Type.OPT, fieldType);
-				typeMap.put(label, fieldType);
-				continue;
-			} else if (List.class.isAssignableFrom(typeClass)) {
-				isArray = true;
-				typeClass = (Class) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-
-				fieldType = getIDLType(typeClass);
-			}
-
-			// do nested type introspection if type is RECORD
-			if (fieldType.getType() == Type.RECORD || fieldType.getType() == Type.VARIANT) {
-				String className = typeClass.getSimpleName();
-
-				if (typeClass.isAnnotationPresent(XmlType.class)) {
-					XmlType xmlType = (XmlType) typeClass.getAnnotation(XmlType.class);
-
-					if (xmlType.name() != null)
-						className = xmlType.name();
-				}
-				
-				fieldType.setName(className);
-
-				// handle RECORD arrays
-				if (isArray) 
-					fieldType = IDLType.createType(Type.VEC, fieldType);		
-
-			} else if (isArray) 
-				// handle arrays , not record types
-				fieldType = IDLType.createType(Type.VEC, fieldType);
-			
-			if (isOptional && fieldType.getType() != Type.OPT) 
-				// handle Optional
-				fieldType = IDLType.createType(Type.OPT, fieldType);
-			
-
-			typeMap.put(label, fieldType);
-
-		}
-
-		IDLType idlType;
-
-		if (valueClass.isEnum()) {
-			Class<Enum> enumClass = (Class<Enum>) valueClass;
-			Enum[] constants = enumClass.getEnumConstants();
-
-			for (Enum constant : constants) {
-
-				String name = constant.name();
-
-				try {
-					if (enumClass.getField(name).isAnnotationPresent(XmlEnumValue.class))
-						name = enumClass.getField(name).getAnnotation(XmlEnumValue.class).value();	
-				} catch (NoSuchFieldException | SecurityException e) {
-					continue;
-				}
-				
-				Label namedLabel = Label.createNamedLabel(name);
-
-				if (!typeMap.containsKey(namedLabel))
-					typeMap.put(namedLabel, null);
-
-			}
-			idlType = IDLType.createType(Type.VARIANT, typeMap);
-		} else
-			idlType = IDLType.createType(Type.RECORD, typeMap);
-
-		String className = valueClass.getSimpleName();
-
-		if (valueClass.isAnnotationPresent(XmlType.class)) {
-			XmlType xmlType = (XmlType) valueClass.getAnnotation(XmlType.class);
-
-			if (xmlType.name() != null)
-				className = xmlType.name();
-		}
-
-		idlType.setName(className);
-
-		return idlType;
 	}
 
 }

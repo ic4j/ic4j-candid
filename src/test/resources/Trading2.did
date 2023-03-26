@@ -1,0 +1,820 @@
+type definite_canister_settings = 
+ record {
+   compute_allocation: nat;
+   controllers: opt vec principal;
+   freezing_threshold: nat;
+   memory_allocation: nat;
+ };
+type VerifyResult = 
+ variant {
+   err: Err;
+   ok: TokenIdentifier;
+ };
+type User__2 = 
+ variant {
+   address: AccountIdentifier;
+   "principal": principal;
+ };
+type User__1 = 
+ variant {
+   address: AccountIdentifier;
+   "principal": principal;
+ };
+type UserId__2 = principal;
+type UserId__1 = principal;
+type UserId = principal;
+type User = 
+ variant {
+   address: AccountIdentifier;
+   "principal": principal;
+ };
+type TradeType = 
+ variant {
+   auction;
+   dutchAuction;
+   fixed;
+   offer;
+ };
+type TradeResult = 
+ variant {
+   err: Err__1;
+   ok: Order;
+ };
+type TokenSpec = 
+ variant {
+   extensible: CandyValue;
+   ic: ICTokenSpec;
+ };
+type TokenIdentifier__4 = text;
+type TokenIdentifier__3 = text;
+type TokenIdentifier__2 = text;
+type TokenIdentifier__1 = text;
+type TokenIdentifier = text;
+type Time = int;
+type StatsListings = 
+ record {
+   price: Price__3;
+   tokenIdentifier: TokenIdentifier__3;
+ };
+type Standard = 
+ variant {
+   ext;
+   ogy: OgyInfo;
+ };
+type ShowCart = 
+ record {
+   collectionName: text;
+   nftName: text;
+   nftUrl: text;
+   price: nat64;
+   tokenIdentifier: TokenIdentifier;
+ };
+type SettleRecordResult = 
+ variant {
+   err: variant {
+          NoSettleRecord;
+          RetryExceed;
+          SettleErr;
+        };
+   ok;
+ };
+type SettlePointResult = 
+ variant {
+   err: variant {
+          NoSettlePoint;
+          RetryExceed;
+          SettleErr;
+        };
+   ok;
+ };
+type SettleICPResult = 
+ variant {
+   err: variant {
+          NoSettleICP;
+          RetryExceed;
+          SettleErr;
+        };
+   ok;
+ };
+type Result_6 = 
+ variant {
+   err: text;
+   ok: BlockIndex;
+ };
+type Result_5 = 
+ variant {
+   err: record {
+          TokenIdentifier;
+          text;
+        };
+   ok: TokenIdentifier;
+ };
+type Result_4 = 
+ variant {
+   err: CollectionErr;
+   ok: principal;
+ };
+type Result_3 = 
+ variant {
+   err: ProfileErr;
+   ok;
+ };
+type Result_2 = 
+ variant {
+   err: ProfileErr;
+   ok: ProfileLet;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok;
+ };
+type Result = 
+ variant {
+   err: CollectionErr;
+   ok;
+ };
+type RecordSettle = 
+ record {
+   "record": RecordEventInit;
+   retry: nat64;
+ };
+type RecordEventType = 
+ variant {
+   acceptOffer;
+   auction;
+   auctionDeal;
+   claim;
+   dutchAuction;
+   list;
+   mint;
+   offer;
+   point;
+   sold;
+   transfer;
+ };
+type RecordEventInit = 
+ record {
+   collection: principal;
+   date: int;
+   eventType: RecordEventType;
+   from: opt principal;
+   fromAID: opt AccountIdentifier__2;
+   item: TokenIdentifier__2;
+   price: opt Price__1;
+   to: opt principal;
+   toAID: opt AccountIdentifier__2;
+ };
+type Property = 
+ record {
+   immutable: bool;
+   name: text;
+   value: CandyValue;
+ };
+type ProfileLet = 
+ record {
+   avatar: Img;
+   banner: Img;
+   bio: text;
+   collected: vec TokenIdentifier__4;
+   collections: vec principal;
+   created: vec TokenIdentifier__4;
+   email: text;
+   favorited: vec TokenIdentifier__4;
+   followeds: vec UserId__2;
+   followers: vec UserId__2;
+   notification: vec text;
+   offersMade: vec OfferId__2;
+   offersReceived: vec OfferId__2;
+   time: Time;
+   userId: UserId__2;
+   userName: text;
+ };
+type ProfileErr = 
+ variant {
+   alreadyCreate;
+   defaultAccount;
+   noProfile;
+ };
+type Price__3 = nat64;
+type Price__2 = nat64;
+type Price__1 = nat64;
+type Price = nat64;
+type PointSale = 
+ record {
+   price: nat64;
+   retry: nat64;
+   user: User__2;
+ };
+type PageParam = 
+ record {
+   page: nat;
+   pageCount: nat;
+ };
+type Order = 
+ record {
+   buyer: User__1;
+   fee: Fee__1;
+   memo: nat64;
+   price: Price__2;
+   seller: User__1;
+   time: int;
+   tokenIdentifier: TokenIdentifier__1;
+   tradeType: TradeType;
+ };
+type OgyInfo = 
+ record {
+   creator: principal;
+   fee: record {
+          precision: nat64;
+          rate: nat64;
+        };
+   owner: principal;
+   token: TokenSpec;
+   totalFee: record {
+               precision: nat64;
+               rate: nat64;
+             };
+ };
+type OfferStatus = 
+ variant {
+   accepted;
+   expired;
+   ineffect;
+   rejected;
+ };
+type OfferResult = 
+ variant {
+   err: Err__1;
+   ok: OfferId__1;
+ };
+type OfferId__2 = nat;
+type OfferId__1 = nat;
+type OfferId = nat;
+type Offer = 
+ record {
+   bidder: principal;
+   offerId: OfferId__1;
+   price: Price__2;
+   seller: User__1;
+   status: OfferStatus;
+   time: Time;
+   tokenIdentifier: TokenIdentifier__1;
+   ttl: int;
+ };
+type NewProfile = 
+ record {
+   avatar: Img;
+   banner: Img;
+   bio: text;
+   email: text;
+   notification: vec text;
+   userName: text;
+ };
+type NewOffer = 
+ record {
+   bidder: principal;
+   price: Price__2;
+   seller: User__1;
+   tokenIdentifier: TokenIdentifier__1;
+   ttl: int;
+ };
+type NewFixed = 
+ record {
+   price: Price__2;
+   tokenIdentifier: TokenIdentifier__1;
+ };
+type NewDutchAuction = 
+ record {
+   endTime: Time;
+   floorPrice: Price__2;
+   reducePrice: Price__2;
+   reduceTime: nat64;
+   startPrice: Price__2;
+   startTime: Time;
+   tokenIdentifier: TokenIdentifier__1;
+ };
+type Nanos = nat64;
+type NFTInfo = 
+ record {
+   favoriters: vec principal;
+   lastPrice: Price__1;
+   listTime: opt Time;
+   listing: Listing;
+   views: nat;
+ };
+type LogMessagesData = 
+ record {
+   message: text;
+   timeNanos: Nanos;
+ };
+type Listings = 
+ record {
+   price: Price__3;
+   tokenIdentifier: TokenIdentifier__3;
+ };
+type Listing = 
+ variant {
+   auction: Auction;
+   dutchAuction: DutchAuction;
+   fixed: Fixed;
+   unlist;
+ };
+type ListResult = 
+ variant {
+   err: Err__1;
+   ok: TokenIdentifier__1;
+ };
+type Links = 
+ record {
+   discord: opt text;
+   instagram: opt text;
+   medium: opt text;
+   telegram: opt text;
+   twitter: opt text;
+   yoursite: opt text;
+ };
+type Img__1 = text;
+type Img = text;
+type ICTokenSpec = 
+ record {
+   canister: principal;
+   decimals: nat;
+   fee: nat;
+   standard: variant {
+               DIP20;
+               EXTFungible;
+               ICRC1;
+               Ledger;
+             };
+   symbol: text;
+ };
+type ICPSale = 
+ record {
+   memo: nat64;
+   price: nat64;
+   retry: nat64;
+   user: User__2;
+ };
+type ICPRefund = 
+ record {
+   memo: nat64;
+   price: nat64;
+   retry: nat64;
+   user: AccountIdentifier__2;
+ };
+type GetLogMessagesParameters = 
+ record {
+   count: nat32;
+   filter: opt GetLogMessagesFilter;
+   fromTimeNanos: opt Nanos;
+ };
+type GetLogMessagesFilter = 
+ record {
+   analyzeCount: nat32;
+   messageContains: opt text;
+   messageRegex: opt text;
+ };
+type GetLatestLogMessagesParameters = 
+ record {
+   count: nat32;
+   filter: opt GetLogMessagesFilter;
+   upToTimeNanos: opt Nanos;
+ };
+type Fixed = 
+ record {
+   fee: Fee;
+   price: Price__1;
+   seller: principal;
+   tokenIdentifier: TokenIdentifier__2;
+ };
+type Fee__1 = 
+ record {
+   platform: Price__1;
+   royalties: Price__1;
+ };
+type Fee = 
+ record {
+   platform: Price__1;
+   royalties: Price__1;
+ };
+type Err__1 = 
+ variant {
+   auctionFail;
+   nftAlreadyListing;
+   nftNotAuction;
+   nftNotlist;
+   nftlockedByOther;
+   notFoundOffer;
+   offerExpired;
+   other: record {
+            TokenIdentifier__1;
+            text;
+          };
+ };
+type Err = 
+ variant {
+   CannotNotify: AccountIdentifier__1;
+   InsufficientBalance;
+   InvalidToken: TokenIdentifier;
+   NotList;
+   NotSell;
+   Other: text;
+   Rejected;
+   TxNotFound;
+   Unauthorized: AccountIdentifier__1;
+   VerifyTxErr;
+ };
+type DutchAuctionResult = 
+ variant {
+   err: Err__1;
+   ok;
+ };
+type DutchAuction = 
+ record {
+   endTime: Time;
+   fee: Fee;
+   floorPrice: Price__1;
+   reducePrice: Price__1;
+   reduceTime: nat64;
+   seller: principal;
+   startPrice: Price__1;
+   startTime: Time;
+   tokenIdentifier: TokenIdentifier__2;
+ };
+type CreatorInfo = 
+ record {
+   canister: principal;
+   user: UserId__1;
+   userName: text;
+ };
+type CollectionStatsImmut = 
+ record {
+   createTime: Time;
+   floorPrice: Price__1;
+   listings: vec Listings;
+   tradeCount: nat;
+   volumeTrade: Price__1;
+ };
+type CollectionSortingField = 
+ variant {
+   createTime;
+   floorPrice;
+   listingNumber;
+   name;
+   volumeTrade;
+ };
+type CollectionSortFilterArgs = 
+ record {
+   ascending: bool;
+   filterArgs: CollectionFilterArgs;
+   limit: nat;
+   offset: nat;
+   sortingField: CollectionSortingField;
+ };
+type CollectionInit = 
+ record {
+   banner: opt Img__1;
+   category: opt Category;
+   description: opt text;
+   featured: opt Img__1;
+   isVisible: bool;
+   links: opt Links;
+   logo: opt Img__1;
+   name: opt text;
+   openTime: opt Time;
+   releaseTime: opt Time;
+   royalties: Price__1;
+   standard: Standard;
+   url: opt text;
+ };
+type CollectionInfo__1 = 
+ record {
+   banner: opt Img__1;
+   canisterId: principal;
+   category: opt Category;
+   creator: UserId;
+   description: opt text;
+   featured: opt Img__1;
+   isVisible: bool;
+   links: opt Links;
+   logo: opt Img__1;
+   name: text;
+   releaseTime: opt Time;
+   royalties: Price__1;
+   standard: Standard;
+   url: opt text;
+ };
+type CollectionInfo = 
+ record {
+   banner: opt Img__1;
+   canisterId: principal;
+   category: opt Category;
+   creator: UserId;
+   description: opt text;
+   featured: opt Img__1;
+   isVisible: bool;
+   links: opt Links;
+   logo: opt Img__1;
+   name: text;
+   releaseTime: opt Time;
+   royalties: Price__1;
+   standard: Standard;
+   url: opt text;
+ };
+type CollectionFilterArgs = 
+ record {
+   category: opt vec text;
+   creator: opt vec UserId;
+   name: opt text;
+ };
+type CollectionErr = 
+ variant {
+   guestCannotCreateCollection;
+   maxCollNum;
+   perMaxCollNum;
+ };
+type CollectionData = 
+ record {
+   creator: opt CollectionCreatorData;
+   info: CollectionInfo__1;
+   stats: opt CollectionStatsImmut;
+ };
+type CollectionCreatorData = 
+ record {
+   avatar: Img__1;
+   bio: text;
+   time: Time;
+   userId: UserId;
+   userName: text;
+ };
+type Category = text;
+type CanisterLogResponse = 
+ variant {
+   messages: CanisterLogMessages;
+   messagesInfo: CanisterLogMessagesInfo;
+ };
+type CanisterLogRequest = 
+ variant {
+   getLatestMessages: GetLatestLogMessagesParameters;
+   getMessages: GetLogMessagesParameters;
+   getMessagesInfo;
+ };
+type CanisterLogMessagesInfo = 
+ record {
+   count: nat32;
+   features: vec opt CanisterLogFeature;
+   firstTimeNanos: opt Nanos;
+   lastTimeNanos: opt Nanos;
+ };
+type CanisterLogMessages = 
+ record {
+   data: vec LogMessagesData;
+   lastAnalyzedMessageTimeNanos: opt Nanos;
+ };
+type CanisterLogFeature = 
+ variant {
+   filterMessageByContains;
+   filterMessageByRegex;
+ };
+type CandyValue = 
+ variant {
+   Array: variant {
+            frozen: vec CandyValue;
+            thawed: vec CandyValue;
+          };
+   Blob: blob;
+   Bool: bool;
+   Bytes: variant {
+            frozen: vec nat8;
+            thawed: vec nat8;
+          };
+   Class: vec Property;
+   Empty;
+   Float: float64;
+   Floats: variant {
+             frozen: vec float64;
+             thawed: vec float64;
+           };
+   Int: int;
+   Int16: int16;
+   Int32: int32;
+   Int64: int64;
+   Int8: int8;
+   Nat: nat;
+   Nat16: nat16;
+   Nat32: nat32;
+   Nat64: nat64;
+   Nat8: nat8;
+   Nats: variant {
+           frozen: vec nat;
+           thawed: vec nat;
+         };
+   Option: opt CandyValue;
+   Principal: principal;
+   Text: text;
+ };
+type BlockIndex = nat64;
+type BatchVerifyResult = 
+ variant {
+   err: Err;
+   ok: vec TokenIdentifier;
+ };
+type BatchTradeResult = 
+ variant {
+   err: Err__1;
+   ok: record {
+         Memo: nat;
+         Price: nat64;
+       };
+ };
+type Auction = 
+ record {
+   fee: Fee;
+   highestBidder: opt principal;
+   highestPrice: opt Price__1;
+   resevePrice: opt Price__1;
+   seller: principal;
+   startPrice: Price__1;
+   tokenIdentifier: TokenIdentifier__2;
+   ttl: int;
+ };
+type AddCart = 
+ record {
+   nftName: text;
+   nftUrl: text;
+   tokenIdentifier: TokenIdentifier;
+ };
+type AccountIdentifier__2 = text;
+type AccountIdentifier__1 = text;
+type AccountIdentifier = text;
+service : {
+  acceptOffer: (OfferId) -> (Result_6);
+  addCanisterController: (principal, principal) -> () oneway;
+  addCarts: (vec AddCart) -> (vec Result_5);
+  addCreator_whitelist: (vec principal) -> ();
+  addSecond_creator_whitelist: (vec principal) -> ();
+  balance: () -> (nat);
+  batchBuyNow: (vec TokenIdentifier) -> (BatchTradeResult);
+  batchSell: (vec NewFixed) -> (vec ListResult);
+  batchSettleICP: (vec nat) -> (vec SettleICPResult);
+  batchSettleICPRefund: (vec nat) -> ();
+  batchSettleRecord: (vec nat) -> ();
+  batchVerifyTx: (nat64) -> (BatchVerifyResult);
+  buyNow: (TokenIdentifier) -> (TradeResult);
+  cancelOffer: (OfferId) -> (bool);
+  checkOffer: (vec TokenIdentifier) -> ();
+  checkSubAccountBalance: (AccountIdentifier__1) -> (nat64);
+  checkTx: (vec TokenIdentifier) -> ();
+  collectionStats: (principal) ->
+   (opt
+     record {
+       createTime: Time;
+       floorPrice: Price;
+       listings: vec StatsListings;
+       tradeCount: nat;
+       volumeTrade: Price;
+     }) query;
+  common_img_migrate: (principal, text, text, text) -> ();
+  createCollection: (CollectionInit) -> (Result_4);
+  createProfile: (NewProfile) -> (Result_3);
+  createProfile4User: (principal, NewProfile) -> (Result_3);
+  created: (TokenIdentifier, principal) -> ();
+  dealOffer: (vec TokenIdentifier) -> ();
+  delCreator_whitelist: (vec principal) -> ();
+  delSecond_creator_whitelist: (vec principal) -> ();
+  deleteCanister: (principal) -> ();
+  deleteWait: (TokenIdentifier) -> ();
+  deleteWaitByHeight: (nat) -> ();
+  favorite: (TokenIdentifier) -> ();
+  findHighOfferByNft: (TokenIdentifier) -> (opt Offer);
+  findOfferById: (OfferId) -> (opt Offer);
+  findOfferByNft: (TokenIdentifier) -> (vec Offer) query;
+  findProfile: () -> (Result_2) query;
+  findProfileWho: (User__2) -> (Result_2) query;
+  flushICPRefundSettlement: () -> ();
+  flushICPSettlement: () -> ();
+  flushPointSettlement: () -> ();
+  flushRecordSettlement: () -> ();
+  follow: (principal) -> ();
+  getCanisterLog: (opt CanisterLogRequest) -> (opt CanisterLogResponse) query;
+  getCanisterSettings: (principal) -> (definite_canister_settings);
+  getCollectionData: (principal) -> (opt CollectionData) query;
+  getCollectionDatas: (vec principal) -> (vec CollectionData) query;
+  getConfig: () ->
+   (record {
+      block: text;
+      lanuchpad: principal;
+      ledeger: text;
+      owner: principal;
+      platformFeeAccount: principal;
+      point: principal;
+      "record": principal;
+    }) query;
+  getCreator_whitelist: () -> (vec principal) query;
+  getICPRefundSettlements: () -> (vec record {
+                                        nat;
+                                        ICPRefund;
+                                      }) query;
+  getICPSettlements: () -> (vec record {
+                                  nat;
+                                  ICPSale;
+                                }) query;
+  getListingByHeight: (nat64) -> (opt Listing);
+  getListingByTid: (nat) -> (opt Listing);
+  getOfferTids: () -> (vec TokenIdentifier) query;
+  getOwner: () -> (principal);
+  getPayAddress: () -> (text);
+  getPointSettlements: () -> (vec record {
+                                    nat;
+                                    PointSale;
+                                  }) query;
+  getRecordSettlement: () -> (vec record {
+                                    nat;
+                                    RecordSettle;
+                                  }) query;
+  getSecond_creator_whitelist: () -> (vec principal) query;
+  getrecordMarks: () ->
+   (vec record {
+          principal;
+          vec record {
+                text;
+                nat;
+              };
+        }) query;
+  handleOrigynActivity: (principal, vec text) -> ();
+  handleOrigynActivityForBt385: () -> ();
+  importCollection: (principal, text, CollectionInit) -> (Result);
+  insertListing: (vec Fixed) -> (nat);
+  listCollected: () -> (vec TokenIdentifier) query;
+  listCollections: () -> (vec text) query;
+  listCollections2: (opt CollectionSortFilterArgs) ->
+   (vec CollectionData) query;
+  listCreated: () -> (vec TokenIdentifier) query;
+  listCreators: () -> (vec CreatorInfo);
+  listFavorite: () -> (vec TokenIdentifier) query;
+  listOfferMade: (principal) -> (vec Offer);
+  listOfferReceived: (principal) -> (vec Offer);
+  listOrigynCollections: () -> (vec principal) query;
+  listedDataRecovery: (principal, Price, TokenIdentifier) -> (ListResult);
+  listfolloweds: () -> (vec principal) query;
+  listfollowers: () -> (vec principal) query;
+  makeOffer: (NewOffer) -> (OfferResult);
+  migrateCollection: () -> ();
+  migrateListing: () -> ();
+  migrateListingPageAble: (nat, nat) -> ();
+  myCollectionList: () -> (vec CollectionInfo) query;
+  nftInfo: (TokenIdentifier) -> (NFTInfo) query;
+  nftInfos: (vec TokenIdentifier) -> (vec NFTInfo) query;
+  nftInfosByCollection: (principal, vec nat32) -> (vec NFTInfo) query;
+  nftInfosByCollectionOgy: (principal, vec text) -> (vec NFTInfo);
+  nftInfosByCollectionPageable: (principal, PageParam) -> (vec NFTInfo) query;
+  queryPlatformFee: () ->
+   (record {
+      account: AccountIdentifier__1;
+      fee: Price;
+      precision: nat64;
+    }) query;
+  queryPointRatio: () -> (nat64) query;
+  querySortedCollection: (CollectionSortingField, bool, nat, nat,
+   CollectionFilterArgs) -> (vec principal);
+  recordPoint: (User, Price) -> ();
+  rejectOffer: (OfferId) -> (Result_1);
+  removeCarts: (opt TokenIdentifier) -> ();
+  removeCollection: (principal, text) -> (Result);
+  resetRecordMarks: (principal) -> ();
+  sell: (NewFixed) -> (ListResult);
+  sellDutchAuction: (NewDutchAuction) -> (DutchAuctionResult);
+  setICPRefundSettlements: (nat, AccountIdentifier__1, nat64, nat64) -> ();
+  setICPSettlements: (nat, User, nat64, nat64) -> ();
+  setMinter: (principal, text) -> ();
+  setOwner: (principal) -> ();
+  setPlatformAccount: (principal) -> ();
+  setPlatformFee: (nat64, nat64) -> ();
+  setPointRatio: (nat64) -> ();
+  setPointSettlements: (nat, principal, nat64) -> ();
+  setRateLimit: (nat, nat) -> ();
+  setRateLimitFalse: () -> ();
+  setRecordMarks: (principal, text, nat) -> ();
+  setTid: (nat) -> () oneway;
+  setWICP: (text) -> ();
+  settleICP: (nat) -> (SettleICPResult);
+  settleICPRefund: (nat) -> (SettleICPResult);
+  settlePoint: (nat) -> (SettlePointResult);
+  settleRecord: (nat) -> (SettleRecordResult);
+  showCart: () -> (vec ShowCart);
+  subscribe: (text) -> ();
+  unSell: (TokenIdentifier) -> (ListResult);
+  unfavorite: (TokenIdentifier) -> ();
+  unfollow: (principal) -> ();
+  updateCollection: (CollectionInfo) -> (bool);
+  updateCreators: () -> (text);
+  updateOffer: (OfferId, Price) -> (OfferResult);
+  updateProfile: (NewProfile) -> (bool);
+  verifyTxWithMemo: (nat64) -> (VerifyResult);
+  view: (TokenIdentifier) -> ();
+  volumeTraded: (principal, Price) -> ();
+  wallet_receive: () -> (nat);
+  withdraw: (AccountIdentifier__1, Price, nat64) -> (bool);
+  withdrawBySubAccount: (User, Price) -> (bool);
+}

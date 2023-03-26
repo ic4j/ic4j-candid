@@ -12,6 +12,7 @@ import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.tree.CandidParser;
 import org.ic4j.candid.parser.tree.SimpleNode;
 import org.ic4j.candid.types.Mode;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,9 @@ public final class ParserTest {
 	static final String IC_TEST_IDL_FILE = "ic_test.did";	
 	static final String II_IDL_FILE = "internet_identity.did";
 	static final String TRADING_IDL_FILE = "Trading.did";
+	static final String TRADING2_IDL_FILE = "Trading2.did";	
+	static final String SWIFT_IDL_FILE = "Swift.did";
+	static final String ROSETTANET_IDL_FILE = "RosettaNet.did";
 
 	static {
 		LOG = LoggerFactory.getLogger(ParserTest.class);
@@ -32,6 +36,12 @@ public final class ParserTest {
 	public void test() {
 
 		try {
+			this.testIDL(TRADING2_IDL_FILE);
+			this.parseIDL(TRADING2_IDL_FILE);
+			this.testIDL(SWIFT_IDL_FILE);
+			this.parseIDL(SWIFT_IDL_FILE);
+			this.testIDL(ROSETTANET_IDL_FILE);
+			this.parseIDL(ROSETTANET_IDL_FILE);			
 			this.testIDL(TRADING_IDL_FILE);
 			this.parseIDL(TRADING_IDL_FILE);
 			this.testIDL(IC_TEST_IDL_FILE);
@@ -42,6 +52,7 @@ public final class ParserTest {
 			this.parseIDL(II_IDL_FILE);
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());
 		}
 
 	}
@@ -134,6 +145,7 @@ public final class ParserTest {
 
 		} catch (Exception e) {
 			LOG.error(e.getMessage());
+			Assertions.fail(e.getLocalizedMessage());
 		}
 	}
 

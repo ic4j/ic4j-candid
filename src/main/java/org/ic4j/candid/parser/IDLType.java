@@ -16,6 +16,7 @@
 
 package org.ic4j.candid.parser;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,6 +48,8 @@ public final class IDLType {
 	String name;
 	String description;
 	
+	Class<?> javaType;
+	
 
 	void addInnerTypes(Object value) {
 		if (value == null)
@@ -55,6 +58,8 @@ public final class IDLType {
 		{
 			if( ((Optional) value).isPresent())
 				this.innerType = IDLType.createType(((Optional) value).get());
+			else
+				this.innerType = IDLType.createType(Type.NULL);
 		}
 		else if (value.getClass().isArray()) {
 			//Class clazz = ((Object[]) value).getClass().getComponentType();
@@ -108,10 +113,17 @@ public final class IDLType {
 		return idlType;
 	}
 	
-	public static IDLType createType(List<IDLType> args, List<IDLType> rets, List<Mode> modes) {
-		IDLType idlType = new IDLType();
+	public static IDLType createType(Type type, Class<?> javaType) {
+		IDLType idlType = createType(type);
 
-		idlType.type = Type.FUNC;
+		idlType.javaType = javaType;
+
+		return idlType;
+	}
+	
+	public static IDLType createType(List<IDLType> args, List<IDLType> rets, List<Mode> modes) {
+		IDLType idlType = createType(Type.FUNC);
+
 		idlType.args = args;
 		idlType.rets = rets;
 		idlType.modes = modes;	
@@ -119,18 +131,16 @@ public final class IDLType {
 	}
 	
 	public static IDLType createType(Map<String,IDLType> meths) {
-		IDLType idlType = new IDLType();
+		IDLType idlType = createType(Type.SERVICE);
 
-		idlType.type = Type.SERVICE;
 		idlType.meths = meths;
 	
 		return idlType;
 	}	
 
 	public static IDLType createType(Type type, IDLType innerType) {
-		IDLType idlType = new IDLType();
+		IDLType idlType =createType(type);
 
-		idlType.type = type;
 		
 		if(type == Type.OPT || type == Type.VEC)
 			if(innerType != null)
@@ -141,11 +151,8 @@ public final class IDLType {
 	
 	
 	public static IDLType createType(Type type, Map<Label,IDLType> typeMap) {
-		IDLType idlType = new IDLType();
-
-		idlType.type = type;
-		
-		
+		IDLType idlType =createType(type);
+			
 		if(type == Type.RECORD || type == Type.VARIANT)
 			if(typeMap != null)
 				idlType.typeMap = typeMap;
@@ -154,9 +161,7 @@ public final class IDLType {
 	}
 	
 	public static IDLType createType(Object value, Type type) {
-		IDLType idlType = new IDLType();
-
-		idlType.type = type;
+		IDLType idlType =createType(type);
 		
 		idlType.addInnerTypes(value);
 
@@ -164,12 +169,14 @@ public final class IDLType {
 	}
 
 	public static IDLType createType(Object value) {
-		IDLType idlType = new IDLType();
+		IDLType idlType = new IDLType();	
 
 		idlType.type = Type.NULL;
 
 		if (value == null)
 			return idlType;
+		
+		idlType.javaType = value.getClass();
 
 		if (value instanceof Boolean)
 			idlType.type = Type.BOOL;
@@ -209,6 +216,8 @@ public final class IDLType {
 
 	public static IDLType createType(Class clazz) {
 		IDLType idlType = new IDLType();
+		
+		idlType.javaType = clazz;
 
 		idlType.type = Type.NULL;
 
@@ -228,6 +237,8 @@ public final class IDLType {
 			idlType.type = Type.FLOAT32;
 		else if (clazz == Double.class)
 			idlType.type = Type.FLOAT64;
+		else if (clazz == BigDecimal.class)
+			idlType.type = Type.FLOAT64;		
 		else if (clazz == String.class)
 			idlType.type = Type.TEXT;
 		else if (clazz == Optional.class)
@@ -293,8 +304,8 @@ public final class IDLType {
 			}
 		}
 		
-		if(this.name != null)
-			flattenType.put(name, this);
+		if(this.javaType != null && this.name != null)
+			flattenType.put(this.javaType.getName(), this);
 		
 		return flattenType;
 	}
@@ -366,6 +377,20 @@ public final class IDLType {
 	 */
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	/**
+	 * @return the javaType
+	 */
+	public Class<?> getJavaType() {
+		return javaType;
+	}
+
+	/**
+	 * @param javaType the javaType to set
+	 */
+	public void setJavaType(Class<?> javaType) {
+		this.javaType = javaType;
 	}
 	
 

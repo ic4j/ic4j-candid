@@ -14,7 +14,7 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.6.18'
+version '0.6.19'
 
 sourceCompatibility = 1.8
 
@@ -73,23 +73,23 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.1'
+	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.2'
 	
 	// https://mvnrepository.com/artifact/net.java.dev.javacc/javacc
-	implementation group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.11'	
+	implementation group: 'net.java.dev.javacc', name: 'javacc', version: '7.0.12'	
 		
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.3'	
+	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.6'	
 
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.1'	
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.2'	
 	
 	// https://mvnrepository.com/artifact/org.skyscreamer/jsonassert
-	testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'	
+	testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.1'	
 	
 	// https://mvnrepository.com/artifact/org.apache.derby/derby
 	testImplementation group: 'org.apache.derby', name: 'derby', version: '10.14.2.0'
 	
-	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2021-9.2.6'	
+	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2022-9.3.5'	
 }
 

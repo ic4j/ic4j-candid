@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.ic4j.candid.parser.ParserError.ParserErrorCode;
@@ -83,14 +84,19 @@ public class IDLParser {
 						String name = ((SimpleNode) typeNode.jjtGetChild(0)).jjtGetValue().toString();
 
 						IDLType idlType = this.getIDLType(((SimpleNode) typeNode.jjtGetChild(1)));
-
-						idlType.setName(name);
-
+						
 						if (idlType != null)
+						{
+							idlType.setName(name);
 							this.types.put(name, idlType);
+						}
 					}
 				}
 			}
+			
+			// find and complete missing types
+			for(IDLType idlType : this.types.values())
+				this.postProcessType(idlType);
 
 			// get services
 
@@ -192,6 +198,11 @@ public class IDLParser {
 
 		if (idlType != null)
 			idlType.setName(name);
+		else {
+			// set Reserved type, will try to find actual type in post processing
+			idlType = IDLType.createType(Type.RESERVED);
+			idlType.setName(name);
+		}
 
 		return idlType;
 	}
@@ -260,14 +271,21 @@ public class IDLParser {
 			Label label;
 
 			if (subTypeNode.jjtGetNumChildren() > 1) {
-				label = Label.createNamedLabel(((SimpleNode) subTypeNode.jjtGetChild(0)).jjtGetValue().toString());
-				subType = this.getIDLType((SimpleNode) subTypeNode.jjtGetChild(1));
+				String labelName = ((SimpleNode) subTypeNode.jjtGetChild(0)).jjtGetValue().toString();
+				
+				labelName = this.normalizeLabelName(labelName);
+				
+				label = Label.createNamedLabel(labelName);
+				SimpleNode subTypeNodeValue = (SimpleNode) subTypeNode.jjtGetChild(1);
+				
+				subType = this.getIDLType(subTypeNodeValue);
 			} else {
 				label = Label.createUnnamedLabel(id);
 				id++;
 				subType = this.getIDLType((SimpleNode) subTypeNode.jjtGetChild(0));
-
 			}
+			
+
 			typeMap.put(label, subType);
 		}
 
@@ -283,8 +301,14 @@ public class IDLParser {
 			Label label;
 
 			if (subTypeNode.jjtGetNumChildren() > 1) {
-				label = Label.createNamedLabel(((SimpleNode) subTypeNode.jjtGetChild(0)).jjtGetValue().toString());
-				subType = this.getIDLType((SimpleNode) subTypeNode.jjtGetChild(1));
+				String labelName = ((SimpleNode) subTypeNode.jjtGetChild(0)).jjtGetValue().toString();
+				
+				labelName = this.normalizeLabelName(labelName);
+				
+				label = Label.createNamedLabel(labelName);
+				SimpleNode subTypeNodeValue = (SimpleNode) subTypeNode.jjtGetChild(1);
+				
+				subType = this.getIDLType(subTypeNodeValue);
 			} else
 				label = Label.createNamedLabel(((SimpleNode) subTypeNode.jjtGetChild(0)).jjtGetValue().toString());
 
@@ -292,6 +316,14 @@ public class IDLParser {
 		}
 
 		return IDLType.createType(Type.VARIANT, typeMap);
+	}
+	
+	String normalizeLabelName(String name)
+	{
+		if(name != null)
+			name = name.replaceAll("\"", "");
+		
+		return name;
 	}
 
 	private IDLType getArgument(SimpleNode argNode) {
@@ -332,6 +364,37 @@ public class IDLParser {
 		}
 
 		return childNodes;
+	}
+	
+	// add types for null values	
+	private void postProcessType(IDLType idlType)
+	{
+		if(idlType == null)
+			return;
+		
+		Set<Label> valueSet = idlType.typeMap.keySet();
+		for(Label idlSubTypeLabel : valueSet)
+		{
+			IDLType idlSubType = idlType.typeMap.get(idlSubTypeLabel);
+			
+			// find missing type
+			if(idlSubType == null)
+			{
+				if(this.types.containsKey(idlSubTypeLabel.toString()))
+					idlSubType = this.types.get(idlSubTypeLabel.toString());
+			}
+			else if(idlSubType.getType() == Type.RESERVED)
+			{
+				String idlSubTypeName = idlSubType.getName();
+				idlSubType = this.types.get(idlSubTypeName);
+			}			
+
+			// find nested missing types
+			if(idlSubType != null)
+				this.postProcessType(idlSubType);	
+			
+			idlType.typeMap.put(idlSubTypeLabel, idlSubType);
+		}
 	}
 
 	/**

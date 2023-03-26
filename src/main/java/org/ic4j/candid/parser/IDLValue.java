@@ -155,9 +155,21 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeInt64((Long) value.get());
 			break;			
 		case FLOAT32:
-			serializer.serializeFloat32((Float) value.get());	
+			if(value.isPresent() && value.get() instanceof Double)
+			{
+				Float floatValue = ((Double)value.get()).floatValue();
+				serializer.serializeFloat32((Float) floatValue);
+			}
+			else
+				serializer.serializeFloat32((Float) value.get());	
 			break;
 		case FLOAT64:
+			if(value.isPresent() && value.get() instanceof Float)
+			{
+				Double doubleValue = ((Float)value.get()).doubleValue();
+				serializer.serializeFloat64((Double) doubleValue);
+			}
+			else			
 			serializer.serializeFloat64((Double) value.get());
 			break;			
 		case TEXT:
