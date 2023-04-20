@@ -1,5 +1,6 @@
 # dfinity-agent
-Java Candid for The Internet Computer (IC4J) is a set of native Java libraries to manage the Internet Computer Candid types. Full documentation <a href="https://docs.ic4j.com">
+Java Candid for The Internet Computer (IC4J) is a collection of open-source native Java libraries designed to handle Candid types on the Internet Computer.
+Full documentation <a href="https://docs.ic4j.com">
 here</a>
 
 <a href="https://dfinity.org/">
