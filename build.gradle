@@ -14,7 +14,7 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.6.19'
+version '0.6.19.3'
 
 sourceCompatibility = 1.8
 
@@ -27,16 +27,25 @@ javacc {
 	javaCCVersion '5.0'
     // configuration container for all javacc configurations
     configs {
-        tree {
-            inputFile = file('src/main/java/org/ic4j/candid/parser/tree/CandidParser.jjt')
+          value {
+            inputFile = file('src/main/java/org/ic4j/candid/parser/idl/value/IDLValueGrammar.jjt')
             outputDir = file('src/main/java')
-            packageName = 'org.ic4j.candid.parser.tree'
+            packageName = 'org.ic4j.candid.parser.idl.value'
             
             jjtree {
-                    nodePackage = 'org.ic4j.candid.parser.tree'
+                    nodePackage = 'org.ic4j.candid.parser.idl.value'
                 }
-        }       
-    }
+        } 
+           type {
+            inputFile = file('src/main/java/org/ic4j/candid/parser/idl/type/IDLTypeGrammar.jjt')
+            outputDir = file('src/main/java')
+            packageName = 'org.ic4j.candid.parser.idl.type'
+            
+            jjtree {
+                    nodePackage = 'org.ic4j.candid.parser.idl.type'
+                }
+        }                          
+    }       
 }
 
 jar {

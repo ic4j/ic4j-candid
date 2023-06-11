@@ -1,0 +1,342 @@
+/**
+ * JJTree template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{  static = false;}PARSER_BEGIN(IDLValueGrammar)package org.ic4j.candid.parser.idl.value;
+
+public class IDLValueGrammar{
+  public static void main(String args [])  
+  {
+    IDLValueGrammar parser;
+    if(args.length == 0){
+    System.out.println("Reading from standard input...");
+    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");
+    parser = new IDLValueGrammar(System.in);
+  }
+    else if(args.length == 1){
+      System.out.println("Reading from file " + args[0] + " . . ." );
+      try {
+        parser = new IDLValueGrammar(new java.io.FileInputStream(args[0]));
+      }
+       catch(java.io.FileNotFoundException e){
+        System.out.println("File " + args[0] + " not found.");
+        return ;
+        }       
+     }
+    else
+    	return; 
+    try
+    {
+
+      SimpleNode n = parser.Start();
+      n.dump("idlValue");
+      System.out.println("Done");
+
+      System.out.println(n.jjtGetNumChildren());
+
+      for(int i = 0; i < n.jjtGetNumChildren(); i++)
+      {
+        System.out.println(n.jjtGetChild(i).getClass());
+      }
+    }
+    catch (Exception e)
+    {
+      System.out.println(e.getMessage());
+    }
+  }
+}PARSER_END(IDLValueGrammar)SKIP :{
+  " "
+| "\""  
+| "\t"
+| "\n"
+| "\r"
+| < "//" (~[ "\n", "\r" ])*
+    (
+      "\n"
+    | "\r"
+    | "\r\n"
+    ) >
+| < "/*" (~[ "*" ])* "*"
+    (
+      ~[ "/" ] (~[ "*" ])* "*"
+    )*
+    "/" >
+}
+
+TOKEN : {
+	<TYPE: "type"> |
+	<SERVICE: "service"> |
+	<QUERY: "query"> |
+	<ONEWAY: "oneway"> |
+	< FUNC: "func">|
+	< BLOB: "blob">|
+	< BOOL: "bool">|
+	< NULL: "null">|
+	< RESERVED: "reserved">|
+	< EMPTY: "empty">|				
+	< RECORD: "record">|
+	< VARIANT: "variant">|
+	< PRINCIPAL: "principal">|
+	< OPT: "opt">|
+	< VEC: "vec">|
+	< TEXT: "text">|
+	< NAT: "nat">|
+	< NAT8: "nat8">|
+	< NAT16: "nat16">|
+	< NAT32: "nat32">|
+	< NAT64: "nat64"> |
+	< INT: "int">|
+	< INT8: "int8">|
+	< INT16: "int16">|
+	< INT32: "int32">|
+	< INT64: "int64">|
+	< FLOAT32: "float32">|
+	< FLOAT64: "float64"> |
+	< TRUE: "true" > |
+	< FALSE: "false" >				
+}
+
+/* SEPARATORS */
+
+TOKEN :
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+}TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL:
+       (["+","-"])? (<DECIMAL_LITERAL> (["l","L"])?
+      | <HEX_LITERAL> (["l","L"])?
+      | <OCTAL_LITERAL> (["l","L"])?)
+  >
+|
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < FLOATING_POINT_LITERAL:
+        (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"])
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+  < CHARACTER_LITERAL:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )
+      "'"
+  >
+|
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}
+TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}SimpleNode Start() :{}{  Arguments()  {    return jjtThis;  }}
+
+void SimpleType() :
+{
+	Token t;
+}  
+{
+  (
+	t=< BOOL >|
+	t=< NULL >|
+	t=< EMPTY >|	
+	t=< PRINCIPAL>|	
+	t=< TEXT>|
+	t=< NAT>|
+	t=< NAT8>|
+	t=< NAT16>|
+	t=< NAT32>|
+	t=< NAT64>|
+	t=< INT>|
+	t=< INT8>|
+	t=< INT16>|
+	t=< INT32>|
+	t=< INT64>|
+	t=< FLOAT32>|
+	t=< FLOAT64>	
+	)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+
+void Arguments() :
+{}
+{
+  "(" [ ValueList() ] ")"
+}
+
+void ValueList() :
+{}
+{
+  Value() ( "," Value() )*
+}void Value() :{}{	 (SimpleValue() | BlobValue() | VecValue() | OptValue() | RecordValue() | VariantValue()) }
+
+void SimpleValue() :
+{}
+{
+	 (String() | Integer() | Float() | Boolean() | Null()) (":" SimpleType())?
+}
+
+void BlobValue() :
+{}
+{
+	<BLOB> String()
+}
+
+void VecValue() :
+{}
+{
+	< VEC> "{" [ ArrayList() ] "}"
+}
+
+void ArrayList() :
+{}
+{
+  Value() ( ";" Value() )*
+}
+
+void OptValue() :
+{}
+{
+	< OPT> Value() 
+}
+
+void RecordValue() :
+{}
+{
+	< RECORD> "{" [ RecordList() ] "}"
+}
+
+void RecordList() :
+{}
+{
+ RecordSubValue() ( ";" RecordSubValue() )*
+}
+
+void RecordSubValue() :
+{}
+{
+  (Id() "=")? (SimpleValue() | OptValue() | VecValue() |  RecordValue() | VariantValue())
+}
+
+void VariantValue() :
+{}
+{
+	< VARIANT> "{" [ VariantList() ] "}"
+}
+
+void VariantList() :
+{}
+{
+ VariantSubValue() ( ";" VariantSubValue() )*
+}
+
+
+void VariantSubValue() :
+{}
+{
+  (Id() "=")? (SimpleValue() | OptValue() | VecValue() |  RecordValue() | VariantValue())
+}
+
+void String():
+{
+	Token t;
+}
+{
+	t=< STRING_LITERAL >
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}void Integer() :{
+	Token t;
+}
+{
+	(
+		t= < INTEGER_LITERAL >
+	)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+
+void Float() :
+{
+	Token t;
+}
+{
+	(	  t= < FLOATING_POINT_LITERAL >
+	)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+
+void Boolean() :
+{
+	Token t;
+}
+{
+	(	  t=< TRUE > | t=< FALSE >)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+
+void Null() :
+{
+} 
+{
+  < NULL > 
+}
+
+void Identifier() :
+{
+	Token t;
+}
+{
+	t=<IDENTIFIER>
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+
+void Id() :
+{
+	Token t;
+}
+{
+	(
+	  t=<INTEGER_LITERAL> | t=< IDENTIFIER >)
+	{
+	  jjtThis.jjtSetValue(t.image);
+	}
+}
+

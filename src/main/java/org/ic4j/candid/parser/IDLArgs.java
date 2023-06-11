@@ -16,6 +16,8 @@
 
 package org.ic4j.candid.parser;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +47,15 @@ public final class IDLArgs {
 
 	}
 	
+	public static IDLArgs fromIDL(String idl)
+	{
+		Reader reader = new StringReader(idl);
+		IDLValueParser idlParser = new IDLValueParser(reader);
+		idlParser.parse();
+		
+		return idlParser.getArgs();					
+	}
+	
 	public static IDLArgs fromBytes(byte[] bytes)
 	{
 		IDLDeserialize de = IDLDeserialize.create(bytes);
@@ -60,7 +71,7 @@ public final class IDLArgs {
 		de.done();	
 		
 		return new IDLArgs(args);			
-	}
+	}	
 	
 	public static IDLArgs fromBytes(byte[] bytes, IDLType[] idlTypes)
 	{

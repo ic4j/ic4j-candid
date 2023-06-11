@@ -27,9 +27,9 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.ic4j.candid.parser.ParserError.ParserErrorCode;
-import org.ic4j.candid.parser.tree.CandidParser;
-import org.ic4j.candid.parser.tree.ParseException;
-import org.ic4j.candid.parser.tree.SimpleNode;
+import org.ic4j.candid.parser.idl.type.IDLTypeGrammar;
+import org.ic4j.candid.parser.idl.type.ParseException;
+import org.ic4j.candid.parser.idl.type.SimpleNode;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Mode;
 import org.ic4j.candid.types.Type;
@@ -59,21 +59,21 @@ public class IDLParser {
 	static final String BLOB_TYPE = "blob";
 
 	static Logger LOG = LoggerFactory.getLogger(IDLParser.class);
-	CandidParser candidParser;
+	IDLTypeGrammar parser;
 	Map<String, IDLType> types = new HashMap<String, IDLType>();
 	Map<String, IDLType> services = new HashMap<String, IDLType>();
 
 	public IDLParser(Reader reader) {
-		this.candidParser = new CandidParser(reader);
+		this.parser = new IDLTypeGrammar(reader);
 	}
 
 	public IDLParser(InputStream inputStream) {
-		this.candidParser = new CandidParser(inputStream);
+		this.parser = new IDLTypeGrammar(inputStream);
 	}
 
 	public void parse() throws ParserError {
 		try {
-			SimpleNode node = this.candidParser.Start();
+			SimpleNode node = this.parser.Start();
 
 			// get types
 			List<SimpleNode> typeNodes = this.getChildNodes(node, TYPE_EXPRESSION_NODE_NAME);
@@ -210,7 +210,7 @@ public class IDLParser {
 	private IDLType getSimpleType(SimpleNode typeNode) {
 		// handle blob
 		if (BLOB_TYPE.equals(typeNode.jjtGetValue().toString()))
-			return IDLType.createType(Type.VEC, Type.NAT8);
+			return IDLType.createType(Type.VEC, IDLType.createType(Type.NAT8));
 
 		return IDLType.createType(Type.from(typeNode.jjtGetValue().toString().toUpperCase()));
 	}
