@@ -46,6 +46,8 @@ public class IDLParser {
 	static final String RECORD_TYPE_NAME = "RecordType";
 	static final String FUNC_TYPE_NAME = "FuncType";
 	static final String SERVICE_TYPE_NAME = "ServiceType";
+	
+	static final String SERVICE_EXPRESSION_TYPE_NAME = "ServiceExpressionType";	
 	static final String VARIANT_TYPE_NAME = "VariantType";
 	static final String RECORD_SUB_TYPE_NAME = "RecordSubType";
 	static final String VARIANT_SUB_TYPE_NAME = "VariantSubType";
@@ -77,18 +79,28 @@ public class IDLParser {
 
 			// get types
 			List<SimpleNode> typeNodes = this.getChildNodes(node, TYPE_EXPRESSION_NODE_NAME);
+			
+			Map<String, List<SimpleNode>> serviceExpressionTypes = new HashMap<String, List<SimpleNode>>();
 
 			for (SimpleNode typeNode : typeNodes) {
 				if (typeNode.jjtGetNumChildren() > 1) {
 					if (IDENTIFIER_NODE_NAME.equals(typeNode.jjtGetChild(0).toString())) {
 						String name = ((SimpleNode) typeNode.jjtGetChild(0)).jjtGetValue().toString();
 
-						IDLType idlType = this.getIDLType(((SimpleNode) typeNode.jjtGetChild(1)));
-						
-						if (idlType != null)
+						// handle service expression type
+						if(SERVICE_EXPRESSION_TYPE_NAME.equals( typeNode.jjtGetChild(1).toString()))
 						{
-							idlType.setName(name);
-							this.types.put(name, idlType);
+							serviceExpressionTypes.put(name, this.getChildNodes((SimpleNode)typeNode.jjtGetChild(1), null));
+						}
+						else
+						{	
+							IDLType idlType = this.getIDLType(((SimpleNode) typeNode.jjtGetChild(1)));
+							
+							if (idlType != null)
+							{
+								idlType.setName(name);
+								this.types.put(name, idlType);
+							}
 						}
 					}
 				}
@@ -105,6 +117,16 @@ public class IDLParser {
 			Integer id = 0;
 			for (SimpleNode serviceNode : serviceNodes) {
 				List<SimpleNode> functionNodes = this.getChildNodes(serviceNode, FUNCTION_NODE_NAME);
+				
+				if(functionNodes.isEmpty() && IDENTIFIER_NODE_NAME.equals(serviceNode.jjtGetChild(1).toString()))
+				{	
+					String name = ((SimpleNode) serviceNode.jjtGetChild(1)).jjtGetValue().toString();
+					
+					if(serviceExpressionTypes.containsKey(name))
+					{
+						functionNodes = serviceExpressionTypes.get(name);
+					}
+				}
 				Map<String, IDLType> meths = new HashMap<String, IDLType>();
 
 				for (SimpleNode functionNode : functionNodes) {

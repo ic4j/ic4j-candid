@@ -1,0 +1,25 @@
+type LoanProvider = 
+ service {
+   apply: (LoanApplication) -> (LoanOffer);
+   getOffers: () -> (vec LoanOffer) query;
+ };
+type LoanOffer = 
+ record {
+   applicationid: nat;
+   apr: float64;
+   created: int;
+   providerid: principal;
+   providername: text;
+ };
+type LoanApplication = 
+ record {
+   amount: float64;
+   created: int;
+   firstname: text;
+   id: nat;
+   lastname: text;
+   ssn: text;
+   term: nat16;
+   zipcode: text;
+ };
+service : () -> LoanProvider
