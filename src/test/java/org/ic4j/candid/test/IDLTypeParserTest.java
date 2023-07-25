@@ -29,6 +29,8 @@ public final class IDLTypeParserTest {
 	static final String ROSETTANET_IDL_FILE = "RosettaNet.did";
 	
 	static final String LOAN_IDL_FILE = "LoanProvider.did";
+	
+	static final String ORIGYN_IDL_FILE = "origyn_nft_reference.did";	
 
 	static {
 		LOG = LoggerFactory.getLogger(IDLTypeParserTest.class);
@@ -38,6 +40,8 @@ public final class IDLTypeParserTest {
 	public void test() {
 
 		try {
+			this.testIDL(ORIGYN_IDL_FILE);
+			this.parseIDL(ORIGYN_IDL_FILE);				
 			this.testIDL(LOAN_IDL_FILE);
 			this.parseIDL(LOAN_IDL_FILE);			
 			this.testIDL(TRADING2_IDL_FILE);

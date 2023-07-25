@@ -290,11 +290,14 @@ public final class PojoSerializer implements ObjectSerializer {
 			
 			if(item == null)
 			{
+				if(valueClass.isEnum())
+					continue;
+				
 				// set NULL value
 				fieldType = IDLType.createType(Type.NULL);
 				
 				typeMap.put(label,fieldType);	
-				valueMap.put(Label.createNamedLabel((String)name), item);
+				valueMap.put(label, item);
 				continue;
 			}
 			
