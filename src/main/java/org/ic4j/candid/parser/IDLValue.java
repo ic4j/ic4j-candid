@@ -16,6 +16,7 @@
 
 package org.ic4j.candid.parser;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
@@ -136,8 +137,14 @@ public final class IDLValue implements Deserialize{
 		case NAT32:
 			serializer.serializeNat32((Integer)value.get());
 			break;
-		case NAT64:			
-			serializer.serializeNat64((Long) value.get());
+		case NAT64:	
+			if(value.isPresent() && value.get() instanceof BigInteger)
+			{
+				Long longValue = ((BigInteger)value.get()).longValue();
+				serializer.serializeNat64((Long) longValue);
+			}
+			else
+				serializer.serializeNat64((Long) value.get());
 			break;			
 		case INT:
 			serializer.serializeInt((BigInteger) IDLUtils.objectToBigInt(value.get()));			
@@ -152,6 +159,12 @@ public final class IDLValue implements Deserialize{
 			serializer.serializeInt32((Integer) value.get());
 			break;
 		case INT64:
+			if(value.isPresent() && value.get() instanceof BigInteger)
+			{
+				Long longValue = ((BigInteger)value.get()).longValue();
+				serializer.serializeInt64((Long) longValue);
+			}
+			else
 			serializer.serializeInt64((Long) value.get());
 			break;			
 		case FLOAT32:
@@ -164,13 +177,18 @@ public final class IDLValue implements Deserialize{
 				serializer.serializeFloat32((Float) value.get());	
 			break;
 		case FLOAT64:
-			if(value.isPresent() && value.get() instanceof Float)
+			if(value.isPresent() && value.get() instanceof BigDecimal)
+			{
+				Double doubleValue = ((BigDecimal)value.get()).doubleValue();
+				serializer.serializeFloat64((Double) doubleValue);
+			} 
+			else if(value.isPresent() && value.get() instanceof Float)
 			{
 				Double doubleValue = ((Float)value.get()).doubleValue();
 				serializer.serializeFloat64((Double) doubleValue);
 			}
 			else			
-			serializer.serializeFloat64((Double) value.get());
+				serializer.serializeFloat64((Double) value.get());
 			break;			
 		case TEXT:
 			serializer.serializeText((String) value.get());
