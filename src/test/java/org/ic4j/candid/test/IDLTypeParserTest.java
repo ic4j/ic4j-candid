@@ -31,6 +31,10 @@ public final class IDLTypeParserTest {
 	static final String LOAN_IDL_FILE = "LoanProvider.did";
 	
 	static final String ORIGYN_IDL_FILE = "origyn_nft_reference.did";	
+	
+	static final String PYTHIA_IDL_FILE = "pythia.did";	
+	static final String SWOP_IDL_FILE = "swop.did";	
+	
 
 	static {
 		LOG = LoggerFactory.getLogger(IDLTypeParserTest.class);
@@ -40,6 +44,10 @@ public final class IDLTypeParserTest {
 	public void test() {
 
 		try {
+			this.testIDL(SWOP_IDL_FILE);
+			this.parseIDL(SWOP_IDL_FILE);					
+			this.testIDL(PYTHIA_IDL_FILE);
+			this.parseIDL(PYTHIA_IDL_FILE);				
 			this.testIDL(ORIGYN_IDL_FILE);
 			this.parseIDL(ORIGYN_IDL_FILE);				
 			this.testIDL(LOAN_IDL_FILE);

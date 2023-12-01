@@ -49,6 +49,32 @@ public class PrincipalTest {
 			Assertions.assertEquals(principal.toString(), "aabzk-v6a3g-5u6a6-vcoqh-effzk-jb676-f47sd-bkqgg-afgmm-7wlka-hqe");			
 			
 			
+			Principal principal1 = Principal.fromString("22w4c-cyaaa-aaaab-qacka-cai");
+			Principal principal2 = Principal.fromString("22w4c-cyaaa-aaaab-qacka-cai");
+			Principal principal3 = Principal.fromString("aabzk-v6a3g-5u6a6-vcoqh-effzk-jb676-f47sd-bkqgg-afgmm-7wlka-hqe");
+			
+			Principal principal4 = null;
+			
+			Principal principal5 = Principal.from(null);
+			
+			Principal principal6 = Principal.from(null);			
+			
+			Assertions.assertTrue(principal1.equals(principal2));
+			
+			Assertions.assertFalse(principal1.equals(principal3));
+			
+			Assertions.assertTrue(principal5.equals(principal6));
+			
+			Assertions.assertFalse(principal1.equals(principal4));
+			
+			Assertions.assertFalse(principal1.equals(principal5));	
+			
+			LOG.info(Integer.toString(principal1.hashCode()));
+			Assertions.assertEquals(-1752726076,principal1.hashCode());
+			LOG.info(Integer.toString(principal3.hashCode()));
+			Assertions.assertEquals(1713895155,principal3.hashCode());			
+			LOG.info(Integer.toString(principal5.hashCode()));
+			Assertions.assertEquals(32,principal5.hashCode());			
 
 		} catch (PrincipalError e) {
 			LOG.error(e.getLocalizedMessage(), e);

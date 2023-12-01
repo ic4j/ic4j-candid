@@ -185,21 +185,6 @@ public final class Principal implements Cloneable {
 		
 	}
 	
-	public boolean equals(Object obj)
-	{
-		if(obj == null)
-			return false;
-		
-		if(!(obj instanceof Principal))
-			return false;
-		
-		Principal value = (Principal)obj;
-		
-		if(this.toString() == null && value.toString() == null)
-			return true;
-		
-		return this.toString().equals(value.toString());
-	}
 
 	static byte[] concatByteArrays(byte[] first, byte[] second) {
 		byte[] result = Arrays.copyOf(first, first.length + second.length);
@@ -301,5 +286,31 @@ public final class Principal implements Cloneable {
 		}
 
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((value == null  || !value.isPresent()) ? 0 : Arrays.hashCode(value.get()));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Principal other = (Principal) obj;
+		if (value == null) {
+			if (other.value == null)
+				return true;
+			else
+				return false;
+		} else if (other.value != null)
+			return Arrays.equals(value.orElse(null), other.value.orElse(null));
+
+		return false;		
+	}	
 
 }
