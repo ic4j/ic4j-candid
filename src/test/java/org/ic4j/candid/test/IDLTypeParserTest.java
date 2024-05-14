@@ -35,6 +35,8 @@ public final class IDLTypeParserTest {
 	static final String PYTHIA_IDL_FILE = "pythia.did";	
 	static final String SWOP_IDL_FILE = "swop.did";	
 	
+	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";		
+	
 
 	static {
 		LOG = LoggerFactory.getLogger(IDLTypeParserTest.class);
@@ -44,6 +46,8 @@ public final class IDLTypeParserTest {
 	public void test() {
 
 		try {
+			this.testIDL(DOCUTRACK_IDL_FILE);
+			this.parseIDL(DOCUTRACK_IDL_FILE);			
 			this.testIDL(SWOP_IDL_FILE);
 			this.parseIDL(SWOP_IDL_FILE);					
 			this.testIDL(PYTHIA_IDL_FILE);

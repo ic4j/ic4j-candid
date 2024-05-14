@@ -53,7 +53,8 @@ public final class ByteUtils {
 		int result = 0;
 
 		int i = 0;
-		while (bytes1.length > 0 && bytes2.length > 0) {
+		while (bytes1.length > i && bytes2.length > i) {
+
 			result = Long.compare(Byte.toUnsignedLong(bytes1[i]), Byte.toUnsignedLong(bytes2[i]));
 
 			if (result != 0)
