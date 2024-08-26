@@ -14,7 +14,7 @@
  * limitations under the License.
 */
 
-package org.ic4j.candid.jaxb;
+package org.ic4j.candid.jaxb.javax;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

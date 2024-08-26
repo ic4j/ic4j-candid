@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "pojo", namespace="http://ic4j.org/candid/test")
-public class JAXBPojo {
+public class JavaxJAXBPojo {
 	@XmlElement(name="bar", namespace="http://ic4j.org/candid/test", required=true)
 	public Boolean bar;
 
@@ -26,7 +26,7 @@ public class JAXBPojo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		JAXBPojo other = (JAXBPojo) obj;
+		JavaxJAXBPojo other = (JavaxJAXBPojo) obj;
 		if (bar == null) {
 			if (other.bar != null)
 				return false;

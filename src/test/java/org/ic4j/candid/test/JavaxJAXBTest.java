@@ -8,9 +8,9 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ic4j.candid.jaxb.JAXBDeserializer;
-import org.ic4j.candid.jaxb.JAXBSerializer;
-import org.ic4j.candid.jaxb.JAXBUtils;
+import org.ic4j.candid.jaxb.javax.JAXBDeserializer;
+import org.ic4j.candid.jaxb.javax.JAXBSerializer;
+import org.ic4j.candid.jaxb.javax.JAXBUtils;
 import org.ic4j.candid.parser.IDLArgs;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
@@ -31,7 +31,7 @@ import com.prowidesoftware.swift.model.mx.dic.TaxRecordPeriod1Code;
 import com.prowidesoftware.swift.utils.Lib;
 
 
-public final class JAXBTest extends CandidAssert {
+public final class JavaxJAXBTest extends CandidAssert {
 	static final String SIMPLE_NODE_FILE = "SimpleNode.xml";
 	static final String COMPLEX_NODE_FILE = "ComplexNode.xml";
 	static final String TRADE_ARRAY_NODE_FILE = "TradeArrayNode.xml";	
@@ -39,18 +39,18 @@ public final class JAXBTest extends CandidAssert {
 
 
 	static {
-		LOG = LoggerFactory.getLogger(JAXBTest.class);
+		LOG = LoggerFactory.getLogger(JavaxJAXBTest.class);
 	}
 
 	@Test
 	public void test() {		
 
-		JAXBPojo pojo;
+		JavaxJAXBPojo pojo;
 		ComplexJAXBPojo complexPojo;
 		try {
 			
-		    JAXBContext context = JAXBContext.newInstance(JAXBPojo.class);
-		    pojo =  (JAXBPojo) context.createUnmarshaller()		
+		    JAXBContext context = JAXBContext.newInstance(JavaxJAXBPojo.class);
+		    pojo =  (JavaxJAXBPojo) context.createUnmarshaller()		
 		      .unmarshal(new File(getClass().getClassLoader().getResource(SIMPLE_NODE_FILE).getFile()));
 			
 			IDLValue idlValue = IDLValue.create(pojo, JAXBSerializer.create());
@@ -61,8 +61,8 @@ public final class JAXBTest extends CandidAssert {
 			
 			byte[] buf = idlArgs.toBytes();	
 			
-			JAXBPojo pojoResult = IDLArgs.fromBytes(buf).getArgs().get(0)
-					.getValue(JAXBDeserializer.create(), JAXBPojo.class);
+			JavaxJAXBPojo pojoResult = IDLArgs.fromBytes(buf).getArgs().get(0)
+					.getValue(JAXBDeserializer.create(), JavaxJAXBPojo.class);
 
 			Assertions.assertEquals(pojo, pojoResult);
 			

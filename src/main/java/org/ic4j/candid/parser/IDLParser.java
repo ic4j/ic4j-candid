@@ -412,7 +412,7 @@ public class IDLParser {
 			}			
 
 			// find nested missing types
-			if(idlSubType != null)
+			if(idlSubType != null && !idlType.typeMap.containsKey(idlSubTypeLabel))
 				this.postProcessType(idlSubType);	
 			
 			idlType.typeMap.put(idlSubTypeLabel, idlSubType);

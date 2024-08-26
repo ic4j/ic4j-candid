@@ -7,8 +7,8 @@ import java.util.List;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 
-import org.ic4j.candid.jakarta.JAXBDeserializer;
-import org.ic4j.candid.jakarta.JAXBSerializer;
+import org.ic4j.candid.jaxb.jakarta.JAXBDeserializer;
+import org.ic4j.candid.jaxb.jakarta.JAXBSerializer;
 import org.ic4j.candid.parser.IDLArgs;
 import org.ic4j.candid.parser.IDLValue;
 import org.junit.jupiter.api.Assertions;

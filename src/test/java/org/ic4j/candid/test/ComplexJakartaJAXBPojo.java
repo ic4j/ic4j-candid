@@ -16,7 +16,7 @@ public class ComplexJakartaJAXBPojo {
 	public BigInteger foo;
 	
 	@XmlElement(name="pojo", namespace="http://ic4j.org/candid/test", required=true)
-	public JAXBPojo pojo;
+	public JavaxJAXBPojo pojo;
 
 	// Just for testing purposes, JUnit uses equals
 	@Override
