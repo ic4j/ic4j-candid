@@ -32,8 +32,7 @@ import org.ic4j.candid.parser.idl.value.SimpleNode;
 import org.ic4j.candid.types.Label;
 
 import org.ic4j.candid.types.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.ic4j.IC4JLogging;
 
 public class IDLValueParser {
 	static final String IDENTIFIER_NODE_NAME = "Identifier";
@@ -55,7 +54,7 @@ public class IDLValueParser {
 	static final String ARGUMENTS_NODE_NAME = "Arguments";
 	static final String VALUE_NODE_NAME = "Value";
 
-	static Logger LOG = LoggerFactory.getLogger(IDLValueParser.class);
+	static IC4JLogging LOG = IC4JLogging.getIC4JLogger(IDLValueParser.class);
 	IDLValueGrammar idlValueGrammar;
 	List<IDLValue> args = new ArrayList<IDLValue>();
 

@@ -33,8 +33,7 @@ import org.ic4j.candid.parser.idl.type.SimpleNode;
 import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Mode;
 import org.ic4j.candid.types.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.ic4j.IC4JLogging;
 
 public class IDLParser {
 	static final String TYPE_EXPRESSION_NODE_NAME = "TypeExpression";
@@ -60,7 +59,8 @@ public class IDLParser {
 
 	static final String BLOB_TYPE = "blob";
 
-	static Logger LOG = LoggerFactory.getLogger(IDLParser.class);
+	static final IC4JLogging LOG = IC4JLogging.getIC4JLogger(IDLParser.class);
+
 	IDLTypeGrammar parser;
 	Map<String, IDLType> types = new HashMap<String, IDLType>();
 	Map<String, IDLType> services = new HashMap<String, IDLType>();

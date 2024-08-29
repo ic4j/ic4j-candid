@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.ic4j.IC4JLogging;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
@@ -30,12 +31,10 @@ import org.ic4j.candid.types.Numbers;
 import org.ic4j.types.Func;
 import org.ic4j.types.Principal;
 import org.ic4j.types.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class ValueSerializer implements Serializer{
-	static final Logger LOG = LoggerFactory.getLogger(ValueSerializer.class);
-	
+	static final IC4JLogging LOG = IC4JLogging.getIC4JLogger(ValueSerializer.class);
+
 	byte[] value;
 	
 	ValueSerializer()
