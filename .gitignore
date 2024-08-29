@@ -7,3 +7,7 @@
 /build-export.gradle
 /secring.gpg
 /DEPLOY.md
+.idea
+.vscode
+.settings
+local.properties

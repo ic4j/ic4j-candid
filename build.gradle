@@ -10,6 +10,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id "com.intershop.gradle.javacc" version "4.0.1"
+    id "maven-publish"
 }
 
 
@@ -45,6 +46,22 @@ javacc {
                 }
         }                          
     }       
+}
+
+tasks.named('javaccType').configure {
+    dependsOn 'javaccValue'
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'ic4j-candid'
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
 }
 
 jar {
