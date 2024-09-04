@@ -14,7 +14,7 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.7.2'
+version '0.7.3'
 
 sourceCompatibility = 1.8
 
@@ -73,8 +73,8 @@ test {
 }
 
 dependencies {	
-	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-	compileOnly group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.16'	
+	// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+	compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'	
 	
 	// https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
 	compileOnly group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'	
@@ -82,11 +82,11 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.google.code.gson/gson
 	compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.11.0'	
 	
-	// https://mvnrepository.com/artifact/commons-codec/commons-codec
-	implementation group: 'commons-codec', name: 'commons-codec', version: '1.17.1'
-	
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.16.0'
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+	
+	// https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.78.1'	
 
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.17.2'		
@@ -115,10 +115,12 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.google.code.gson/gson
 	testImplementation group: 'com.google.code.gson', name: 'gson', version: '2.11.0'	
 	
+	// https://mvnrepository.com/artifact/commons-codec/commons-codec
+	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.17.1'	
+	
 	// https://mvnrepository.com/artifact/org.apache.derby/derby
-	testImplementation group: 'org.apache.derby', name: 'derby', version: '10.14.2.0'
+	testImplementation group: 'org.apache.derby', name: 'derby', version: '10.17.1.0'
 	
 	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2023-9.4.4'	
-	
 }
 

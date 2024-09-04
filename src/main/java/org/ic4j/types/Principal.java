@@ -20,9 +20,12 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.zip.CRC32;
 
-import org.apache.commons.codec.binary.Base32;
-import org.apache.commons.codec.digest.DigestUtils;
-import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_224;
+//import org.apache.commons.codec.binary.Base32;
+//import org.apache.commons.codec.digest.DigestUtils;
+//import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_224;
+
+import org.bouncycastle.util.encoders.Base32;
+import org.bouncycastle.jcajce.provider.digest.SHA224;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +84,10 @@ public final class Principal implements Cloneable {
     // Right now we are enforcing a Twisted Edwards Curve 25519 point
     // as the public key.
 	public static Principal selfAuthenticating(byte[] publicKey) {
-		DigestUtils digestUtils = new DigestUtils(SHA_224);
+		//DigestUtils digestUtils = new DigestUtils(SHA_224);
+		
+		SHA224.Digest digestUtils = new SHA224.Digest();
+		
 		byte[] value = digestUtils.digest(publicKey);
 		
 		// Now add a suffix denoting the identifier as representing a
@@ -95,10 +101,13 @@ public final class Principal implements Cloneable {
     // The text format follows the public spec (see Textual IDs section).	
 	public static Principal fromString(String text) throws PrincipalError {
 
-		String value = makeAsciiLowerCase(text);
+		//String value = makeAsciiLowerCase(text);
+		String value = makeAsciiUpperCase(text);
 		value = value.replace("-", "");
+		
+		value = addPadding(value);
 
-		Optional<byte[]> bytes = Optional.ofNullable(codec.decode(value));
+		Optional<byte[]> bytes = Optional.ofNullable(Base32.decode(value));
 		
 		if (bytes.isPresent()) {
 			if (bytes.get().length < 4) {
@@ -162,7 +171,10 @@ public final class Principal implements Cloneable {
             final byte[] checksum = toChecksumBytes(valueBytes);
             final byte[] bytes = concatByteArrays(checksum, valueBytes);
 
-            String output = codec.encodeAsString(bytes);
+            //String output = codec.encodeAsString(bytes);
+            
+            String output = Base32.toBase32String(bytes);
+            
             output = makeAsciiLowerCase(output);
 
             // remove padding
@@ -210,6 +222,36 @@ public final class Principal implements Cloneable {
 
 		return output;
 	}
+	
+	public static String makeAsciiUpperCase(String input) {
+	    StringBuilder output = new StringBuilder(input.length());
+
+	    for (int i = 0; i < input.length(); i++) {
+	        char c = input.charAt(i);
+	        if (c >= 97 && c <= 122) { // If character is lowercase
+	            c = (char) (c - 32); // Convert to uppercase
+	        }
+	        output.append(c);
+	    }
+
+	    return output.toString();
+	}	
+	
+    public static String addPadding(String base32Encoded) {
+        int length = base32Encoded.length();
+        int remainder = length % 8;
+
+        if (remainder != 0) {
+            int paddingLength = 8 - remainder;
+            StringBuilder padded = new StringBuilder(base32Encoded);
+            for (int i = 0; i < paddingLength; i++) {
+                padded.append('=');
+            }
+            return padded.toString();
+        }
+
+        return base32Encoded; // Already correctly padded
+    }	
 
 	public static Principal from(byte[] bytes) throws PrincipalError {
 		if (Optional.ofNullable(bytes).isPresent() && bytes.length > 0) {
