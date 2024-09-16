@@ -20,10 +20,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.zip.CRC32;
 
-//import org.apache.commons.codec.binary.Base32;
-//import org.apache.commons.codec.digest.DigestUtils;
-//import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA_224;
-
 import org.bouncycastle.util.encoders.Base32;
 import org.bouncycastle.jcajce.provider.digest.SHA224;
 
@@ -83,9 +79,7 @@ public final class Principal implements Cloneable {
 
     // Right now we are enforcing a Twisted Edwards Curve 25519 point
     // as the public key.
-	public static Principal selfAuthenticating(byte[] publicKey) {
-		//DigestUtils digestUtils = new DigestUtils(SHA_224);
-		
+	public static Principal selfAuthenticating(byte[] publicKey) {		
 		SHA224.Digest digestUtils = new SHA224.Digest();
 		
 		byte[] value = digestUtils.digest(publicKey);
@@ -124,8 +118,6 @@ public final class Principal implements Cloneable {
 				throw PrincipalError.create(PrincipalError.PrincipalErrorCode.ABNORMAL_TEXTUAL_FORMAT, expected);
 		} else
 			throw PrincipalError.create(PrincipalError.PrincipalErrorCode.INVALID_TEXTUAL_FORMAT_NOT_BASE32);
-		// Principal principal = new
-		// Principal(PrincipalInner.ANONYMOUS,value.getBytes());
 
 	}
 	
@@ -137,41 +129,12 @@ public final class Principal implements Cloneable {
 			throw PrincipalError.create(PrincipalError.PrincipalErrorCode.EXTERNAL_ERROR,"Value is empty");			
 	}
 
-	/*
-	public String toString() {
-		if (value.isPresent()) {
-			CRC32 hasher = new CRC32();
-
-			hasher.update(value.get());
-
-			// initializing byte array
-			byte[] checksum = new byte[] { 0, 0, 0, 0 };
-
-			if (hasher.getValue() > 0)
-				checksum = BigInteger.valueOf(Long.valueOf(hasher.getValue()).intValue()).toByteArray();
-
-			byte[] bytes = concatByteArrays(checksum, value.get());
-
-			String output = codec.encodeAsString(bytes);
-
-			output = makeAsciiLowerCase(output);
-
-			// remove padding
-			output = StringUtils.stripEnd(output, "=");
-			output = output.replaceAll("(.{5})", "$1-");
-			return output;
-		} else
-			return new String();
-	}
-	*/
 	
     public String toString() {
         if (value.isPresent()) {
             final byte[] valueBytes = value.get();
             final byte[] checksum = toChecksumBytes(valueBytes);
             final byte[] bytes = concatByteArrays(checksum, valueBytes);
-
-            //String output = codec.encodeAsString(bytes);
             
             String output = Base32.toBase32String(bytes);
             
