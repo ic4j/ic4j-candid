@@ -7,3 +7,8 @@
 /build-export.gradle
 /secring.gpg
 /DEPLOY.md
+/FinancialInstitutionCreditTransferV09Types.mo
+/FIToFICustomerCreditTransferV07Types.mo
+.project
+.classpath
+.settings/

@@ -14,9 +14,21 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.7.5'
+version '0.8.0'
 
 sourceCompatibility = 1.8
+
+def runJavacc = providers.gradleProperty('runJavacc').map { it.toBoolean() }.orElse(false).get()
+
+tasks.withType(JavaCompile).configureEach {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.release = 8
+    }
+}
+
+tasks.matching { it.name in ['javaccValue', 'javaccType'] }.configureEach {
+	enabled = runJavacc
+}
 
 repositories {
     mavenCentral()
@@ -76,44 +88,53 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 	compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'	
 	
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    compileOnly group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+	
 	// https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
 	compileOnly group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'	
 	
 	// https://mvnrepository.com/artifact/com.google.code.gson/gson
-	compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.13.1'	
+    compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.13.2'	
 	
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
 	
 	// https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-	implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.80'	
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.83'	
 
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.19.0'		
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.21.1'		
 	
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.12.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.3'
 	
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.12.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.14.3'
 	
 	// https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
-	testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.12.2'	
+    testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.14.3'	
 	
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
 	testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'		
 	
 	// https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
 	testImplementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '3.0.1'	
+
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    testImplementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 	
 	// https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl
 	testImplementation group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '3.0.2'
+
+    // https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime
+    testRuntimeOnly group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.9'
 	
 	// https://mvnrepository.com/artifact/com.google.code.gson/gson
-	testImplementation group: 'com.google.code.gson', name: 'gson', version: '2.13.1'	
+    testImplementation group: 'com.google.code.gson', name: 'gson', version: '2.13.2'	
 	
 	// https://mvnrepository.com/artifact/commons-codec/commons-codec
-	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.18.0'
+    testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.21.0'
 	
 	// https://mvnrepository.com/artifact/org.skyscreamer/jsonassert
 	testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.3'		

@@ -150,20 +150,20 @@ byte[] buf = idlArgs.toBytes();
 
 To add Java IC4J Candid library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.7.5/jar">
-https://search.maven.org/artifact/ic4j/ic4j-candid/0.7.5/jar
+<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.0/jar">
+https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.0/jar
 </a>
 
 ```
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-candid</artifactId>
-  <version>0.7.5</version>
+	<version>0.8.0</version>
 </dependency>
 ```
 
 ```
-implementation 'org.ic4j:ic4j-candid:0.7.5'
+implementation 'org.ic4j:ic4j-candid:0.8.0'
 ```
 
 ## Dependencies
@@ -179,5 +179,18 @@ To parse IC IDL Candid files
 
 # Build
 
-You need JDK 8+ to build IC4J Candid.
+IC4J Candid 0.8.0 publishes Java 8 compatible bytecode. When the build runs on JDK 11 or newer, Gradle uses `--release 8` to keep the main artifact compatible with Java 8.
+
+Generated JavaCC parser sources are committed in the repository. Regenerate them only when you intentionally change the grammar files by running Gradle with `-PrunJavacc=true`.
+
+Recommended validation matrix:
+
+- Run the full test suite on JDK 8 first.
+- Compile and package on JDK 11.
+- Run the full test suite on JDK 11.
+- Run the full test suite on JDK 21.
+
+On macOS, make sure `JAVA_HOME` points to a full JDK for the Java 8 leg. `java_home -v 1.8` can resolve to the Apple plugin JRE, which is not sufficient for Gradle and JavaCC tasks.
+
+The detailed test procedure is documented in `TESTING.md`.
 
