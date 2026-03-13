@@ -1,6 +1,7 @@
 /.gradle/
 /bin/
 /build/
+/scripts/
 /dfinity/
 /derby.log
 /gradle.properties
