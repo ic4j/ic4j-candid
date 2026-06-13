@@ -150,20 +150,20 @@ byte[] buf = idlArgs.toBytes();
 
 To add Java IC4J Candid library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.0/jar">
-https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.0/jar
+<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.1/jar">
+https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.1/jar
 </a>
 
 ```
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-candid</artifactId>
-	<version>0.8.0</version>
+	<version>0.8.1</version>
 </dependency>
 ```
 
 ```
-implementation 'org.ic4j:ic4j-candid:0.8.0'
+implementation 'org.ic4j:ic4j-candid:0.8.1'
 ```
 
 ## Dependencies
@@ -179,7 +179,38 @@ To parse IC IDL Candid files
 
 # Build
 
-IC4J Candid 0.8.0 publishes Java 8 compatible bytecode. When the build runs on JDK 11 or newer, Gradle uses `--release 8` to keep the main artifact compatible with Java 8.
+IC4J Candid 0.8.1 publishes Java 8 compatible bytecode. When the build runs on JDK 11 or newer, Gradle uses `--release 8` to keep the main artifact compatible with Java 8.
+
+## JAXB Traversal Tuning (UBL / Large Object Graphs)
+
+For JAXB to Candid conversion of very broad or deep XML models, traversal can be tuned with system properties.
+
+Supported properties:
+
+- `ic4j.candid.jaxb.maxDepth` (default: `64`)
+- `ic4j.candid.jaxb.maxNodes` (default: `10000`)
+- `ic4j.candid.jaxb.prune.packagePrefixes` (comma-separated package prefixes)
+- `ic4j.candid.jaxb.prune.classNames` (comma-separated fully qualified class names)
+- `ic4j.candid.jaxb.allow.packagePrefixes` (comma-separated package prefixes)
+- `ic4j.candid.jaxb.allow.classNames` (comma-separated fully qualified class names)
+
+Behavior notes:
+
+- Cycles are already guarded using registry + in-progress tracking.
+- If traversal exceeds budget or matches a prune rule, the branch is represented as Candid `reserved`.
+- Allow rules override prune rules for exact class names or package prefixes.
+
+Suggested presets:
+
+- Conservative UBL baseline:
+	- `-Dic4j.candid.jaxb.maxDepth=48`
+	- `-Dic4j.candid.jaxb.maxNodes=5000`
+- Aggressive pruning for generated schema packages:
+	- `-Dic4j.candid.jaxb.prune.packagePrefixes=oasis.names.specification.ubl`
+	- `-Dic4j.candid.jaxb.allow.classNames=com.example.MyEntryPointType`
+- Keep defaults but cap worst-case expansion:
+	- `-Dic4j.candid.jaxb.maxDepth=64`
+	- `-Dic4j.candid.jaxb.maxNodes=10000`
 
 Generated JavaCC parser sources are committed in the repository. Regenerate them only when you intentionally change the grammar files by running Gradle with `-PrunJavacc=true`.
 

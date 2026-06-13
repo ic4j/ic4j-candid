@@ -19,11 +19,15 @@ package org.ic4j.candid.jaxb.jakarta;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.annotation.XmlAnyElement;
@@ -44,12 +48,42 @@ import org.ic4j.candid.types.Label;
 import org.ic4j.candid.types.Type;
 
 public class JAXBUtils {
+	private static final String MAX_DEPTH_PROPERTY = "ic4j.candid.jaxb.maxDepth";
+	private static final String MAX_NODES_PROPERTY = "ic4j.candid.jaxb.maxNodes";
+	private static final String PRUNE_PACKAGES_PROPERTY = "ic4j.candid.jaxb.prune.packagePrefixes";
+	private static final String PRUNE_CLASSES_PROPERTY = "ic4j.candid.jaxb.prune.classNames";
+	private static final String ALLOW_PACKAGES_PROPERTY = "ic4j.candid.jaxb.allow.packagePrefixes";
+	private static final String ALLOW_CLASSES_PROPERTY = "ic4j.candid.jaxb.allow.classNames";
+	private static final int DEFAULT_MAX_DEPTH = 64;
+	private static final int DEFAULT_MAX_NODES = 10000;
+	private static final Map<Class<?>, Field[]> FIELD_CACHE = new ConcurrentHashMap<Class<?>, Field[]>();
 	
 	public static IDLType getIDLType(Class valueClass) {
+		Map<Class<?>, IDLType> registry = new HashMap<Class<?>, IDLType>();
+		Set<Class<?>> inProgress = new HashSet<Class<?>>();
+		TraversalContext traversalContext = new TraversalContext();
+		return getIDLType(valueClass, registry, inProgress, traversalContext, 0);
+	}
+
+	private static IDLType getIDLType(Class valueClass, Map<Class<?>, IDLType> registry, Set<Class<?>> inProgress,
+			TraversalContext traversalContext, int depth) {
 		
 		// handle null values
 		if (valueClass == null)
 			return IDLType.createType(Type.NULL);
+
+		// avoid self/mutual recursion cycles while a class is still being traversed
+		if (inProgress.contains(valueClass)) {
+			IDLType idlType = IDLType.createType(Type.RESERVED, valueClass);
+			idlType.setName(valueClass.getSimpleName());
+			return idlType;
+		}
+
+		if (registry.containsKey(valueClass))
+			return registry.get(valueClass);
+
+		if (depth > traversalContext.maxDepth || !traversalContext.tryVisitNode() || isPruned(valueClass, traversalContext))
+			return createReservedType(valueClass);
 		
 		
 		if(JAXBElement.class.isAssignableFrom(valueClass) )
@@ -57,12 +91,11 @@ public class JAXBUtils {
 			JAXBElement jaxbValue;
 			try {
 				jaxbValue = (JAXBElement) valueClass.newInstance();
-				IDLType idlType  = getIDLType(jaxbValue.getDeclaredType());
+				IDLType idlType  = getIDLType(jaxbValue.getDeclaredType(), registry, inProgress, traversalContext, depth + 1);
 				
 				return idlType;
 			} catch (InstantiationException | IllegalAccessException e) {
-				IDLType idlType = IDLType.createType(Type.RESERVED, valueClass);
-				return idlType;
+				return createReservedType(valueClass);
 			}
 			
 		}
@@ -87,17 +120,29 @@ public class JAXBUtils {
 		if(Duration.class.isAssignableFrom(valueClass))			
 			return org.ic4j.types.Duration.getIDLType();
 		
+		inProgress.add(valueClass);
 
 		Map<Label, IDLType> typeMap = new TreeMap<Label, IDLType>();
 
-		Field[] fields = IDLUtils.getAllFields(valueClass);
+		IDLType idlType;
+		if (valueClass.isEnum())
+			idlType = IDLType.createType(Type.VARIANT, typeMap);
+		else
+			idlType = IDLType.createType(Type.RECORD, typeMap);
 
-		for (Field field : fields) {
-			if (field.isAnnotationPresent(XmlTransient.class))
-				continue;
+		idlType.setName(valueClass.getSimpleName());
+		idlType.setJavaType(valueClass);
+		registry.put(valueClass, idlType);
 
-			if (field.isEnumConstant())
-				continue;
+		try {
+			Field[] fields = FIELD_CACHE.computeIfAbsent(valueClass, IDLUtils::getAllFields);
+
+			for (Field field : fields) {
+				if (field.isAnnotationPresent(XmlTransient.class))
+					continue;
+
+				if (field.isEnumConstant())
+					continue;
 
 			String name = field.getName();
 			if (name.startsWith("this$"))
@@ -139,10 +184,10 @@ public class JAXBUtils {
 			
 			boolean isRequired = true;
 			
-			if (field.isAnnotationPresent(XmlAnyElement.class))
-				fieldType = IDLType.createType(Type.RESERVED);
-			else		
-				fieldType = getIDLType(fieldClass);
+				if (field.isAnnotationPresent(XmlAnyElement.class))
+					fieldType = IDLType.createType(Type.RESERVED);
+				else		
+					fieldType = getIDLType(fieldClass, registry, inProgress, traversalContext, depth + 1);
 
 			if (field.isAnnotationPresent(XmlElement.class)) {
 				XmlElement xmlElement = field.getAnnotation(XmlElement.class);
@@ -264,18 +309,16 @@ public class JAXBUtils {
 				// handle not required as Optional
 				fieldType = IDLType.createType(Type.OPT, fieldType);
 			
-			fieldType.setJavaType(fieldClass);
-			typeMap.put(label, fieldType);
+				fieldType.setJavaType(fieldClass);
+				typeMap.put(label, fieldType);
 
-		}
+			}
 
-		IDLType idlType;
+			if (valueClass.isEnum()) {
+				Class<Enum> enumClass = (Class<Enum>) valueClass;
+				Enum[] constants = enumClass.getEnumConstants();
 
-		if (valueClass.isEnum()) {
-			Class<Enum> enumClass = (Class<Enum>) valueClass;
-			Enum[] constants = enumClass.getEnumConstants();
-
-			for (Enum constant : constants) {
+				for (Enum constant : constants) {
 
 				String name = constant.name();
 
@@ -290,35 +333,119 @@ public class JAXBUtils {
 					continue;
 				}
 				
-				Label namedLabel = Label.createNamedLabel(name);
+					Label namedLabel = Label.createNamedLabel(name);
 
-				if (!typeMap.containsKey(namedLabel))
-					typeMap.put(namedLabel, null);
+					if (!typeMap.containsKey(namedLabel))
+						typeMap.put(namedLabel, null);
 
+				}
 			}
-			idlType = IDLType.createType(Type.VARIANT, typeMap);
-		} else
-			idlType = IDLType.createType(Type.RECORD, typeMap);
 
-		String className = valueClass.getSimpleName();
+			String className = valueClass.getSimpleName();
 
-		if (valueClass.isAnnotationPresent(XmlType.class)) {
-			XmlType xmlType = (XmlType) valueClass.getAnnotation(XmlType.class);
+			if (valueClass.isAnnotationPresent(XmlType.class)) {
+				XmlType xmlType = (XmlType) valueClass.getAnnotation(XmlType.class);
 
 //			if (xmlType.name() != null)
 //				className = xmlType.name();
+			}
+
+			idlType.setName(className);
+			
+			idlType.setJavaType(valueClass);
+
+			return idlType;
+		} finally {
+			inProgress.remove(valueClass);
 		}
-
-		idlType.setName(className);
-		
-		idlType.setJavaType(valueClass);
-
-		return idlType;
 	}	
 	
 	public static String replaceSpecialChars(String value)
 	{
 		return value.replace("/", "_").replace(".", "_").replace("-", "_").replace("-", "_").replace("+", "_");
+	}
+
+	private static IDLType createReservedType(Class valueClass) {
+		IDLType idlType = IDLType.createType(Type.RESERVED, valueClass);
+		if (valueClass != null)
+			idlType.setName(valueClass.getSimpleName());
+		return idlType;
+	}
+
+	private static boolean isPruned(Class valueClass, TraversalContext traversalContext) {
+		if (valueClass == null)
+			return false;
+
+		String className = valueClass.getName();
+		String packageName = valueClass.getPackage() == null ? "" : valueClass.getPackage().getName();
+
+		if (traversalContext.allowClassNames.contains(className)
+				|| startsWithAny(packageName, traversalContext.allowPackagePrefixes))
+			return false;
+
+		return traversalContext.pruneClassNames.contains(className)
+				|| startsWithAny(packageName, traversalContext.prunePackagePrefixes);
+	}
+
+	private static boolean startsWithAny(String value, Set<String> prefixes) {
+		for (String prefix : prefixes) {
+			if (value.startsWith(prefix))
+				return true;
+		}
+
+		return false;
+	}
+
+	private static int getIntProperty(String propertyName, int defaultValue) {
+		String value = System.getProperty(propertyName);
+		if (value == null)
+			return defaultValue;
+
+		try {
+			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
+	private static Set<String> getSetProperty(String propertyName) {
+		Set<String> values = new HashSet<String>();
+		String value = System.getProperty(propertyName);
+		if (value == null)
+			return values;
+
+		String[] splitValues = value.split(",");
+		for (String splitValue : splitValues) {
+			String trimmedValue = splitValue.trim();
+			if (!trimmedValue.isEmpty())
+				values.add(trimmedValue);
+		}
+
+		return values;
+	}
+
+	private static class TraversalContext {
+		final int maxDepth;
+		final int maxNodes;
+		final Set<String> prunePackagePrefixes;
+		final Set<String> pruneClassNames;
+		final Set<String> allowPackagePrefixes;
+		final Set<String> allowClassNames;
+		int visitedNodes;
+
+		TraversalContext() {
+			this.maxDepth = getIntProperty(MAX_DEPTH_PROPERTY, DEFAULT_MAX_DEPTH);
+			this.maxNodes = getIntProperty(MAX_NODES_PROPERTY, DEFAULT_MAX_NODES);
+			this.prunePackagePrefixes = getSetProperty(PRUNE_PACKAGES_PROPERTY);
+			this.pruneClassNames = getSetProperty(PRUNE_CLASSES_PROPERTY);
+			this.allowPackagePrefixes = getSetProperty(ALLOW_PACKAGES_PROPERTY);
+			this.allowClassNames = getSetProperty(ALLOW_CLASSES_PROPERTY);
+		}
+
+		boolean tryVisitNode() {
+			this.visitedNodes++;
+			return this.visitedNodes <= this.maxNodes;
+		}
 	}
 	
 
