@@ -28,7 +28,6 @@ import java.util.TreeMap;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.candid.parser.IDLValue;
 import org.ic4j.candid.types.Label;
-import org.ic4j.candid.types.Meths;
 import org.ic4j.candid.types.Numbers;
 import org.ic4j.candid.types.Opcode;
 import org.ic4j.candid.types.Type;
@@ -39,6 +38,7 @@ import org.ic4j.types.Service;
 public final class Deserializer {
 	Bytes input;
 	TypeTable table;
+	DecodingBudget budget = new DecodingBudget(DecodingLimits.DEFAULT);
 
 	Optional<IDLType> expectedType = Optional.empty();
 
@@ -59,17 +59,35 @@ public final class Deserializer {
 	}
 
 	public static Deserializer fromBytes(byte[] input) {
-		TypeTableResponse response = TypeTable.fromBytes(input);
+		return fromBytes(input, DecodingLimits.DEFAULT);
+	}
 
-		return new Deserializer(Bytes.from(response.data), response.typeTable, null, 0);
+	public static Deserializer fromBytes(byte[] input, DecodingLimits limits) {
+		DecodingBudget budget = new DecodingBudget(limits);
+		TypeTableResponse response = TypeTable.fromBytes(input, budget);
+		Deserializer deserializer = new Deserializer(Bytes.from(response.data), response.typeTable, null, 0);
+		deserializer.budget = budget;
+		return deserializer;
 	}
 
 	public IDLValue deserializeAny() {
+		this.budget.enterValue();
+		try {
+			return this.deserializeValue();
+		} finally {
+			this.budget.exitValue();
+		}
+	}
+
+	private IDLValue deserializeValue() {
 		if (this.fieldName.isPresent()) {
 			return this.deserializeIdentifier();
 		}
 
 		type = this.table.peekType();
+		if (this.expectedType.isPresent() && this.expectedType.get().getType().intValue() != type.value
+				&& !(this.expectedType.get().getType() == Type.OPT && (type == Opcode.NULL || type == Opcode.RESERVED)))
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Unexpected payload type");
 
 		if (type != Opcode.RECORD)
 			this.recordNestingDepth = 0;
@@ -153,7 +171,7 @@ public final class Deserializer {
 	public IDLValue deserializeText() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.TEXT);
-		int len = this.input.leb128Read().intValue();
+		int len = this.input.readLength();
 
 		String value = this.input.parseString(len);
 
@@ -269,6 +287,7 @@ public final class Deserializer {
 	}
 	
 	public IDLValue deserializeFunc() {
+		int reference = this.table.peekCurrentType().intValue();
 		Opcode opcode = this.table.parseType();
 		
 		if(opcode != Opcode.FUNC)
@@ -287,7 +306,7 @@ public final class Deserializer {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Opaque reference not supported"));		
 
-		int len = this.input.leb128Read().intValue();
+		int len = this.input.readLength();
 
 		byte[] bytes = this.input.parseBytes(len);
 
@@ -295,16 +314,17 @@ public final class Deserializer {
 		
 		// parse method name
 		
-		len = this.input.leb128Read().intValue();
+		len = this.input.readLength();
 
 		String method = this.input.parseString(len);
 		
 		Func value = new Func(principal,method);
 			
-		return IDLValue.create(value, toIDLType(opcode) );
+		return IDLValue.create(value, this.table.resolveType(reference, this.budget, 0));
 	}
 	
 	public IDLValue deserializeService() {
+		int reference = this.table.peekCurrentType().intValue();
 		Opcode opcode = this.table.parseType();	
 		
 		if(opcode != Opcode.SERVICE)
@@ -316,7 +336,7 @@ public final class Deserializer {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Opaque reference not supported"));		
 
-		int len = this.input.leb128Read().intValue();
+		int len = this.input.readLength();
 
 		byte[] bytes = this.input.parseBytes(len);
 
@@ -324,7 +344,7 @@ public final class Deserializer {
 		
 		Service value = new Service(principal);	
 
-		return IDLValue.create(value , toIDLType(opcode)  );		
+		return IDLValue.create(value, this.table.resolveType(reference, this.budget, 0));
 	}	
 
 	public IDLValue deserializeOpt() {
@@ -397,7 +417,8 @@ public final class Deserializer {
 				else
 					this.expectedType = Optional.ofNullable(expectedType.get().getInnerType());
 			
-			int len = this.input.leb128Read().intValue();
+			int len = this.input.readLength();
+			this.budget.reserveElements(len);
 
 			List values = new ArrayList<>(len);
 
@@ -454,6 +475,7 @@ public final class Deserializer {
 				expectedTypeMap = Optional.ofNullable(expectedType.get().getTypeMap());
 
 		int len = this.table.popCurrentType().intValue();
+		this.budget.reserveElements(len);
 
 		Map<Long, Optional> fs = new TreeMap<Long, Optional>();
 
@@ -540,6 +562,7 @@ public final class Deserializer {
 				typeMap = Optional.ofNullable(expectedType.get().getTypeMap());
 
 		int len = this.table.popCurrentType().intValue();
+		this.budget.reserveElements(len);
 
 		Map<Long, Optional> fs = new TreeMap<Long, Optional>();
 
@@ -554,6 +577,8 @@ public final class Deserializer {
 		Map<Label, Object> map = new TreeMap<Label, Object>();
 		
 		long idx = this.input.leb128Read();
+		if (idx >= len)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Variant index out of range");
 		
 		Optional<Long> indexTy = Optional.empty();
 
@@ -584,10 +609,18 @@ public final class Deserializer {
 					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Label Type");				
 				
 				// assign named Label, if exists
-				if(typeMap.isPresent() && typeMap.get().keySet().iterator().hasNext())
+				if(typeMap.isPresent())
 				{
-					label = typeMap.get().keySet().iterator().next();
-					this.expectedType = Optional.ofNullable(typeMap.get().get(label));							
+					Label expectedLabel = null;
+					for (Label candidate : typeMap.get().keySet())
+						if (candidate.getId().equals(hash)) {
+							expectedLabel = candidate;
+							break;
+						}
+					if (expectedLabel == null)
+						throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Unknown variant label");
+					label = expectedLabel;
+					this.expectedType = Optional.ofNullable(typeMap.get().get(label));
 				}
 				else 
 					this.expectedType = Optional.empty();
@@ -624,7 +657,7 @@ public final class Deserializer {
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
 					String.format("Opaque reference not supported"));
 
-		int len = this.input.leb128Read().intValue();
+		int len = this.input.readLength();
 
 		byte[] bytes = this.input.parseBytes(len);
 
@@ -734,53 +767,4 @@ public final class Deserializer {
 		return array;
 	}
 	
-	IDLType toIDLType(Opcode opcode)
-	{
-		switch(opcode)
-		{
-			case FUNC:
-				List<IDLType> args = new ArrayList<IDLType>();
-				List<IDLType> rets = new ArrayList<IDLType>();
-				
-				for(Integer ty : opcode.args)
-				{
-					if(ty < 0)
-						args.add(IDLType.createType(Type.from(ty)));
-					else
-					{
-						Opcode subOpcode = this.table.rawValueToOpcode(ty);
-						args.add(toIDLType(subOpcode));
-					}
-				}
-				
-				for(Integer ty : opcode.rets)
-				{
-					if(ty < 0)
-						rets.add(IDLType.createType(Type.from(ty)));
-					else
-					{
-						Opcode subOpcode = this.table.rawValueToOpcode(ty);
-						rets.add(toIDLType(subOpcode));
-					}						
-				}
-				return IDLType.createType(args, rets, opcode.modes);
-			case SERVICE:
-				Map<String,IDLType> meths = new TreeMap<String,IDLType>();
-				
-				for(Meths meth : opcode.meths)
-				{
-					if(meth.type < 0)
-						meths.put(meth.name, IDLType.createType(Type.from(meth.type)));
-					else
-					{
-						Opcode subOpcode = this.table.rawValueToOpcode(meth.type);
-						meths.put(meth.name,  toIDLType(subOpcode));
-					}		
-				}
-				return IDLType.createType(meths);
-			default:
-				return IDLType.createType(Type.from(opcode.value));
-		}
-	}
-
 }

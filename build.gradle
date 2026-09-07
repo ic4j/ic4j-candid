@@ -14,7 +14,7 @@ plugins {
 
 
 group 'org.ic4j'
-version '0.8.1'
+version '0.8.5'
 
 sourceCompatibility = 1.8
 
@@ -104,7 +104,7 @@ dependencies {
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.83'	
 
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.21.1'		
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.22.2'
 	
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.3'

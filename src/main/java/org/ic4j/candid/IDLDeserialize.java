@@ -29,7 +29,12 @@ public final class IDLDeserialize {
 
 	public static IDLDeserialize create(byte[] bytes)
 	{
-		Deserializer de = Deserializer.fromBytes(bytes);
+		return create(bytes, DecodingLimits.DEFAULT);
+	}
+
+	public static IDLDeserialize create(byte[] bytes, DecodingLimits limits)
+	{
+		Deserializer de = Deserializer.fromBytes(bytes, limits);
 		
 		return new IDLDeserialize(de);
 		
@@ -49,7 +54,7 @@ public final class IDLDeserialize {
 		Long ty = this.de.table.types.poll();
 		
 		if(ty == null)
-			CandidError.create(CandidError.CandidErrorCode.CUSTOM, "No more values to deserialize");
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "No more values to deserialize");
 		
 		this.de.table.currentType.add(ty);
 		

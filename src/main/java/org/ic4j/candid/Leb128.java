@@ -40,8 +40,8 @@ public final class Leb128 {
             count++;
         } while (((cur & 0x80) == 0x80) && count < 5);
 
-        if ((cur & 0x80) == 0x80) {
-        	CandidError.create(CandidError.CandidErrorCode.PARSE);
+        if ((cur & 0x80) == 0x80 || (count == 5 && (cur & 0x78) != 0 && (cur & 0x78) != 0x78)) {
+            throw CandidError.create(CandidError.CandidErrorCode.PARSE);
         }
 
         // Sign extend if appropriate
@@ -84,7 +84,7 @@ public final class Leb128 {
             count++;
         } while (((cur & 0x80) == 0x80) && count < 5);
 
-        if ((cur & 0x80) == 0x80) {
+        if ((cur & 0x80) == 0x80 || (count == 5 && (cur & 0x70) != 0)) {
             throw CandidError.create(CandidError.CandidErrorCode.PARSE);
         }
 
@@ -179,7 +179,7 @@ public final class Leb128 {
             count++;
         } while (((cur & 0x80) == 0x80) && count < 5);
 
-        if ((cur & 0x80) == 0x80) {
+        if ((cur & 0x80) == 0x80 || (count == 5 && (cur & 0x70) != 0)) {
             throw CandidError.create(CandidError.CandidErrorCode.PARSE);
         }
 
@@ -203,8 +203,8 @@ public final class Leb128 {
             count++;
         } while (((cur & 0x80) == 0x80) && count < 5);
 
-        if ((cur & 0x80) == 0x80) {
-        	CandidError.create(CandidError.CandidErrorCode.PARSE);
+        if ((cur & 0x80) == 0x80 || (count == 5 && (cur & 0x78) != 0 && (cur & 0x78) != 0x78)) {
+            throw CandidError.create(CandidError.CandidErrorCode.PARSE);
         }
 
         // Sign extend if appropriate

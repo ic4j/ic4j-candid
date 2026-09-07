@@ -26,6 +26,45 @@ IC4J Candid is available under Apache License 2.0.
 
 # Documentation
 
+## Decoding Untrusted Input
+
+Binary decoding uses per-message limits. Existing `IDLArgs.fromBytes` and
+`IDLDeserialize.create` calls use `DecodingLimits.DEFAULT`:
+
+| Limit | Default |
+| :---- | ------: |
+| Encoded message bytes | 16 MiB |
+| Elements in one collection | 1,000,000 |
+| Total decoded values / aggregate reserved elements | 2,000,000 each |
+| Type-table budget | 100,000 |
+| Value and type-resolution nesting depth | 128 |
+
+The type-table budget counts definitions, fields, function parameters and results,
+annotations, service methods and name bytes, and argument references. Aggregate
+element reservations include top-level arguments, vector elements, record fields,
+and variant alternatives. These are resource budgets, not exact heap-byte limits.
+Limits are checked before collection allocation; exceeded budgets and malformed
+lengths or type references raise `CandidError`. Recursive type references are
+memoized per message. Callers should discard a decoder after a decoding failure.
+
+For a different bounded workload, pass explicit limits:
+
+```java
+DecodingLimits limits = new DecodingLimits(4 * 1024 * 1024, 100000, 200000, 10000, 64);
+IDLArgs decoded = IDLArgs.fromBytes(bytes, expectedTypes, limits);
+```
+
+Use `null` for `expectedTypes` when no expected schema is available. Low-level
+callers can use `IDLDeserialize.create(bytes, limits)`. Keep transport request-size
+and concurrency limits as well; these budgets do not bound total application memory.
+Increasing the depth limit can exceed the JVM stack capacity.
+
+Expected variant members are matched by field ID, never by their position in the
+expected schema. Unknown selected members and payload-type mismatches are rejected.
+POJO and both JAXB deserializers skip static, synthetic, final, and transient fields;
+classes that previously relied on writing those fields must use mutable instance
+fields or a custom deserializer instead.
+
 ## Supported type mapping between Java and Candid
 
 | Candid      | Java    |
@@ -150,20 +189,20 @@ byte[] buf = idlArgs.toBytes();
 
 To add Java IC4J Candid library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.1/jar">
-https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.1/jar
+<a href="https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.5/jar">
+https://search.maven.org/artifact/ic4j/ic4j-candid/0.8.5/jar
 </a>
 
 ```
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-candid</artifactId>
-	<version>0.8.1</version>
+	<version>0.8.5</version>
 </dependency>
 ```
 
 ```
-implementation 'org.ic4j:ic4j-candid:0.8.1'
+implementation 'org.ic4j:ic4j-candid:0.8.5'
 ```
 
 ## Dependencies
@@ -179,7 +218,7 @@ To parse IC IDL Candid files
 
 # Build
 
-IC4J Candid 0.8.1 publishes Java 8 compatible bytecode. When the build runs on JDK 11 or newer, Gradle uses `--release 8` to keep the main artifact compatible with Java 8.
+IC4J Candid 0.8.5 publishes Java 8 compatible bytecode. When the build runs on JDK 11 or newer, Gradle uses `--release 8` to keep the main artifact compatible with Java 8.
 
 ## JAXB Traversal Tuning (UBL / Large Object Graphs)
 

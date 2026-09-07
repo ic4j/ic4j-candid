@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.ic4j.candid.IDLBuilder;
 import org.ic4j.candid.IDLDeserialize;
+import org.ic4j.candid.DecodingLimits;
 
 public final class IDLArgs {
 	List<IDLValue> args;
@@ -58,29 +59,26 @@ public final class IDLArgs {
 	
 	public static IDLArgs fromBytes(byte[] bytes)
 	{
-		IDLDeserialize de = IDLDeserialize.create(bytes);
-		
-		List<IDLValue> args = new ArrayList<IDLValue>();
-		
-		while(!de.isDone())
-		{
-			IDLValue value = de.getValue(IDLValue.class);
-			args.add(value);
-		}
-		
-		de.done();	
-		
-		return new IDLArgs(args);			
+		return fromBytes(bytes, null, DecodingLimits.DEFAULT);
 	}	
 	
 	public static IDLArgs fromBytes(byte[] bytes, IDLType[] idlTypes)
 	{
-		if(idlTypes == null)
-			return fromBytes(bytes);
-		
-		IDLDeserialize de = IDLDeserialize.create(bytes);
+		return fromBytes(bytes, idlTypes, DecodingLimits.DEFAULT);
+	}
+
+	public static IDLArgs fromBytes(byte[] bytes, IDLType[] idlTypes, DecodingLimits limits)
+	{
+		IDLDeserialize de = IDLDeserialize.create(bytes, limits);
 		
 		List<IDLValue> args = new ArrayList<IDLValue>();
+
+		if (idlTypes == null) {
+			while (!de.isDone())
+				args.add(de.getValue(IDLValue.class));
+			de.done();
+			return new IDLArgs(args);
+		}
 		
 		for(int i = 0; i < idlTypes.length; i++)
 		{

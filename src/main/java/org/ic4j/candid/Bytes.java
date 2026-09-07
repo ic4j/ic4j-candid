@@ -63,7 +63,7 @@ final public class Bytes {
 	}
 
 	public byte[] parseBytes(int len) {
-		if (this.data.remaining() < len)
+		if (len < 0 || this.data.remaining() < len)
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Unexpected end of message");
 
 		byte[] buf = new byte[len];
@@ -71,6 +71,13 @@ final public class Bytes {
 		this.data.get(buf, 0, len);
 
 		return buf;
+	}
+
+	public int readLength() {
+		long length = this.leb128Read();
+		if (length > Integer.MAX_VALUE)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Length exceeds supported range");
+		return (int) length;
 	}
 
 	public String parseString(int len) {

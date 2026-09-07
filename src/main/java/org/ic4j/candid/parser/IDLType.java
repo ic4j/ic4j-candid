@@ -317,6 +317,12 @@ public final class IDLType {
 	public IDLType getInnerType() {
 		return this.innerType;
 	}
+
+	public void setInnerType(IDLType innerType) {
+		if (this.type != Type.OPT && this.type != Type.VEC)
+			throw new IllegalStateException("Only optional and vector types have an inner type");
+		this.innerType = innerType;
+	}
 	
 	public Map<Label,IDLType> getTypeMap()
 	{
