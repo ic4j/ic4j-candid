@@ -27,27 +27,27 @@ On macOS, avoid `java_home -v 1.8` if it resolves to the Apple plugin JRE. Point
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-1.8.jdk/Contents/Home
-gradle test --rerun-tasks
+gradle -PrunJavacc=true test --rerun-tasks
 ```
 
 ### JDK 11
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 11)
-gradle test --rerun-tasks
+gradle -PrunJavacc=true test --rerun-tasks
 ```
 
 ### JDK 21
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-gradle test --rerun-tasks
+gradle -PrunJavacc=true test --rerun-tasks
 ```
 
 ## Notes
 
 - The main jar is built with Java 8 compatibility enabled through Gradle `--release 8` when the build runs on JDK 9+.
-- JavaCC regeneration is opt-in. Use `gradle -PrunJavacc=true javaccValue javaccType` only when grammar sources change.
+- JavaCC regeneration is opt-in. Test runs from a clean checkout must enable it with `-PrunJavacc=true`; generated sources are written under `build/generated/sources/javacc`. To regenerate only after grammar changes, run `gradle -PrunJavacc=true javaccValue javaccType`.
 - The build keeps both `jakarta.xml.bind` and `javax.xml.bind` APIs available so the serializer code and tests work on Java 8, 11, and 21.
 - JAXB dependencies stay on the 3.0 line to avoid raising the main source-set baseline beyond Java 8.
 - Test-only dependencies should be reviewed before major upgrades because some newer lines require Java 11+.
