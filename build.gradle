@@ -9,6 +9,7 @@
 plugins {
     id 'java'
     id 'eclipse'
+    id 'maven-publish'
     id "com.intershop.gradle.javacc" version "4.0.1"
 }
 
@@ -71,6 +72,15 @@ jar {
     }
     
     archiveBaseName = 'ic4j-candid'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'ic4j-candid'
+            from components.java
+        }
+    }
 }
 
 task fatJar(type: Jar) {
